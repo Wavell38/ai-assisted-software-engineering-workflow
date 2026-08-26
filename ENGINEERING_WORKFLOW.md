@@ -77,6 +77,33 @@ L’état d’exécution constitue de la preuve et de la provenance. Il ne devie
 
 ---
 
+## Positionnement : Spec-Driven Development
+
+Le workflow s’inscrit dans une logique de **Spec-Driven Development (SDD)** au sens large : expliciter le **quoi**, les contraintes et les critères d’acceptation avant de déléguer le **comment** de l’implémentation.
+
+La spécification n’est pas nécessairement concentrée dans un fichier `spec.md`. Sur un projet existant, elle peut être distribuée entre plusieurs autorités complémentaires :
+
+- la roadmap et le plan de phase pour l’objectif et la trajectoire ;
+- l’architecture pour les frontières et responsabilités acceptées ;
+- les ADR pour la rationale des décisions durables ;
+- les contrats pour les invariants et comportements normatifs ;
+- la tranche pour le delta de travail courant et ses critères d’acceptation ;
+- le prompt pour transformer ce delta en contrat d’exécution borné.
+
+Le workflow étend cette logique au-delà de la séquence spécification → implémentation en ajoutant notamment :
+
+- des autorités vivantes et séparées par responsabilité ;
+- un chargement progressif du contexte ;
+- une validation proportionnée au risque ;
+- une revue indépendante sélectionnée selon la nature du changement ;
+- une boucle de remédiation ;
+- un statut terminal `BLOCKED` lorsque le contrat ne peut pas être satisfait proprement ;
+- un checkpoint anti-dérive lorsque les corrections locales commencent à remettre en cause la conception.
+
+La spécification guide l’exécution mais ne doit pas rigidifier artificiellement le projet. Lorsqu’une hypothèse, un contrat ou une direction architecturale se révèle incorrecte, le workflow doit permettre de revenir au raisonnement et aux autorités concernées plutôt que de forcer l’implémentation à respecter un plan devenu mauvais.
+
+---
+
 ## Hiérarchie du travail
 
 La hiérarchie par défaut est :
@@ -183,7 +210,7 @@ Son rôle est de définir :
 - les conditions de blocage ;
 - le rapport final attendu.
 
-La construction du prompt suit `CODEX_PROMPT_GUIDE.md`.
+La construction du prompt suit `prompts/CODEX_PROMPT_GUIDE.md`.
 
 ---
 
@@ -316,42 +343,46 @@ La boucle de revue fait partie du même run Codex.
 
 L’agent Codex principal reste responsable de sa coordination.
 
-La politique détaillée de revue est définie dans `REVIEW_AND_REMEDIATION_WORKFLOW.md`.
+La politique générale est décrite dans `review/REVIEW_AND_REMEDIATION_WORKFLOW.md`. Lorsque le skill opérationnel `review-and-remediate` est installé, il constitue la procédure d’exécution de référence pour la sélection des reviewers, la consolidation, la remédiation et le rapport d’acceptation.
+
+Le passage par la **gate de review/remédiation** est une étape du workflow pour les tâches modifiant le dépôt, mais cela ne signifie pas qu’un nombre fixe de reviewers ou qu’une analyse déterministe doivent être lancés à chaque tranche.
 
 ---
 
-## 4. Fan-out de revue
+## 4. Sélection et fan-out de revue
 
-Lorsque l’implémentation et la validation sont prêtes, l’agent principal lance :
+Lorsque l’implémentation et la validation initiale sont prêtes, l’agent principal commence par classifier le changement.
 
-- Sonar ou une analyse déterministe équivalente lorsqu’elle est configurée ;
-- quatre sessions de reviewers indépendantes, chacune avec un rôle spécialisé défini par le projet.
+Il sélectionne ensuite **le plus petit ensemble de reviewers indépendants suffisant** pour couvrir les risques matériels de la tranche.
 
-Les reviewers sont indépendants de l’exécuteur et les uns des autres.
+Selon la nature du changement, cela peut conduire à :
 
-Leurs rôles sont volontairement spécialisés plutôt que quatre copies de la même revue générique.
+- aucun reviewer pour un run sans diff effectif, purement analytique ou limité à une provenance non fonctionnelle ;
+- aucune revue de code pour une modification documentaire ordinaire, sauf lorsqu’elle modifie une autorité, un contrat, une décision architecturale ou une procédure exécutable ;
+- une revue du contrat et de la correction pour un changement local ;
+- une revue supplémentaire des tests pour une implémentation comportementale normale ;
+- une revue architecturale lorsqu’un changement touche matériellement ownership, dépendances, frontières, abstractions partagées, cohésion ou décomposition.
 
-Exemples de dimensions de revue :
+Les reviewers sélectionnés travaillent en contexte frais, indépendamment de l’exécuteur et les uns des autres. Leurs rôles sont spécialisés afin d’éviter plusieurs revues génériques redondantes.
 
-- architecture et cohérence structurelle ;
-- qualité des tests et de la validation ;
-- correction sémantique / comportementale ;
-- une autre dimension spécialisée définie par le projet.
+Une analyse déterministe telle que SonarQube peut être lancée en parallèle lorsqu’elle est **configurée, exploitable et pertinente pour le changement**. Elle reste optionnelle dans le workflow global : son absence ou son indisponibilité ne doit pas être transformée en blocker sauf si une autorité spécifique au projet en fait explicitement une exigence.
 
-Les responsabilités exactes des reviewers et leur schéma de sortie appartiennent à la configuration de revue, pas à ce workflow global.
+Lorsqu’aucun reviewer n’est requis, la gate peut être satisfaite sans fan-out LLM. Lorsqu’aucune analyse déterministe n’est applicable, la consolidation s’effectue uniquement sur les sorties réellement requises.
 
-Chaque reviewer renvoie ses constats au format structuré établi.
+Les critères de sélection détaillés, les configurations de reviewers et leur schéma de sortie appartiennent à la politique opérationnelle de revue, pas à ce workflow global.
 
 ---
 
 ## 5. Consolidation
 
-L’agent principal attend toutes les sorties requises, puis consolide :
+L’agent principal attend uniquement les sorties demandées pour la tranche, puis consolide lorsqu’applicable :
 
-- les constats des analyses déterministes ;
-- les constats des reviewers ;
+- les constats des reviewers sélectionnés ;
+- les constats d’analyses déterministes effectivement exécutées ;
 - les sévérités et informations bloquantes ;
 - les recouvrements ou contradictions entre constats.
+
+Chaque constat doit être vérifié contre le dépôt avant d’être accepté, rejeté, différé ou remonté pour décision.
 
 L’agent principal détermine si les constats sont :
 
@@ -359,6 +390,8 @@ L’agent principal détermine si les constats sont :
 - directement remédiables dans la tranche actuelle ;
 - suffisamment sérieux pour nécessiter une nouvelle passe de revue après remédiation ;
 - bloqués par un compromis matériel ou une décision de conception.
+
+S’il n’existe aucun constat matériel et que toutes les validations et conditions de la tranche sont satisfaites, la gate de revue peut être acceptée immédiatement.
 
 ---
 
@@ -368,14 +401,15 @@ Si les constats sont remédiables sans changer le contrat prévu de la tranche, 
 
 Il :
 
-1. relance les validations pertinentes ;
-2. demande aux reviewers concernés de mettre à jour ou relancer leur revue si nécessaire ;
-3. reconsolide les nouveaux résultats.
+1. relance les validations affectées ;
+2. relance ou demande une vérification ciblée uniquement aux reviewers concernés lorsque nécessaire ;
+3. relance l’analyse déterministe uniquement si elle avait été utilisée et si le changement remédié peut modifier son signal ;
+4. reconsolide les nouveaux résultats.
 
 La boucle reste locale :
 
 ```text
-revue
+review / analyse applicable
   ↓
 consolidation
   ↓
@@ -385,7 +419,7 @@ remédiation ciblée
   ↓
 validation pertinente
   ↓
-mise à jour / nouvelle passe des reviewers concernés
+re-review / nouvelle analyse uniquement si nécessaire
   ↓
 consolidation
   ↺
@@ -446,7 +480,7 @@ Il doit normalement identifier :
 - les fichiers et frontières affectés ;
 - les décisions d’implémentation importantes ;
 - les commandes et résultats de validation ;
-- le résultat des revues / Sonar ;
+- le résultat des revues et analyses déterministes effectivement exécutées ;
 - les remédiations effectuées ;
 - les mesures ou expériences pertinentes ;
 - les limites ou incertitudes restantes ;
@@ -706,7 +740,7 @@ Un document d’audit persistant séparé est inutile sauf si le diagnostic poss
 
 # Changements d’architecture
 
-Lorsque l’implémentation, la revue ou un run bloqué expose une décision architecturale matérielle, suivre `ARCHITECTURE_CHANGE_WORKFLOW.md`.
+Lorsque l’implémentation, la revue ou un run bloqué expose une décision architecturale matérielle, suivre `architecture/ARCHITECTURE_CHANGE_WORKFLOW.md`.
 
 Les changements d’architecture doivent mettre à jour les autorités appropriées plutôt que survivre uniquement dans des prompts ou rapports Codex.
 
@@ -762,28 +796,22 @@ flowchart TD
 
     L --> M{Peut passer à la revue ?}
     M -->|Non| X
-    M -->|Oui| N[Lancer la passe de revue]
+    M -->|Oui| N[Classifier le changement]
 
-    N --> N1[Sonar / analyse déterministe]
-    N --> N2[Reviewer 1<br/>rôle spécialisé]
-    N --> N3[Reviewer 2<br/>rôle spécialisé]
-    N --> N4[Reviewer 3<br/>rôle spécialisé]
-    N --> N5[Reviewer 4<br/>rôle spécialisé]
+    N --> N1[Sélectionner les reviewers<br/>strictement nécessaires]
+    N --> N2[Analyse déterministe<br/>si applicable et disponible]
 
-    N1 --> O[Consolidation]
+    N1 --> O[Review / gate proportionnée]
     N2 --> O
-    N3 --> O
-    N4 --> O
-    N5 --> O
 
-    O --> P{Revue satisfaite ?}
+    O --> P{Conditions de revue satisfaites ?}
 
     P -->|Oui| Q[PASSED]
     P -->|Non| R{Remédiable dans la tranche ?}
 
     R -->|Oui| S[Remédiation ciblée]
     S --> T[Validation pertinente]
-    T --> U[Relancer / mettre à jour les reviewers concernés]
+    T --> U[Re-review / analyse ciblée<br/>si nécessaire]
     U --> O
 
     R -->|Non| X
@@ -819,6 +847,7 @@ flowchart TD
 # Principes directeurs
 
 - Garder le raisonnement flexible et les autorités du dépôt explicites.
+- Suivre une logique spec-driven : expliciter le quoi, les contraintes et les critères d’acceptation avant de déléguer le comment.
 - Donner à chaque fait normatif un emplacement autoritaire principal unique.
 - Garder la roadmap compacte.
 - Créer des documents de phase détaillés uniquement lorsqu’ils réduisent réellement la complexité.
@@ -827,8 +856,8 @@ flowchart TD
 - Autoriser `BLOCKED` comme issue terminale normale de tout blocker réel.
 - Ne pas insérer de checkpoints utilisateur inutiles à l’intérieur d’un run sain.
 - Garder la boucle reviewer/remédiation locale ; ne pas redémarrer toute la tranche pour des constats ordinaires.
-- Utiliser des reviewers spécialisés et indépendants plutôt que plusieurs reviewers génériques redondants.
-- Garder l’analyse déterministe séparée de la revue LLM.
+- Sélectionner le plus petit ensemble de reviewers spécialisés et indépendants suffisant pour les risques matériels de la tranche.
+- Garder l’analyse déterministe séparée de la revue LLM et ne l’exécuter que lorsqu’elle est applicable ou exigée par le projet.
 - Choisir les modèles selon le coût cognitif, pas selon des métriques superficielles de taille.
 - Préférer la décomposition lorsqu’elle améliore la fiabilité, la revue ou le coût.
 - Revenir à l’utilisateur + ChatGPT uniquement pour les rapports terminaux, décisions de conception, blockers ou sélection du travail suivant.

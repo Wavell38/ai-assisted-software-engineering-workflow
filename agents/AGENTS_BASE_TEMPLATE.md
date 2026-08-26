@@ -117,7 +117,7 @@ exists deeper in the tree.
 
 - Update authoritative documentation when behavior, contracts, architecture, interfaces, operational procedures, or accepted project state changes.
 - Keep durable design knowledge in project documentation rather than repeating it in task prompts.
-- Use roadmap/module-map/document links as context routers when available; read specialized authorities only when they are relevant to the current task instead of bulk-reading unrelated documentation.
+- Use roadmap/codebase-map/document links as context routers when available; read specialized authorities only when they are relevant to the current task instead of bulk-reading unrelated documentation.
 - Do not document an implementation as accepted until the corresponding evidence and validation exist.
 
 ## Repository hygiene

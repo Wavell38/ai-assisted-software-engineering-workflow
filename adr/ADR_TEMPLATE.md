@@ -4,7 +4,7 @@
 - **Date:** YYYY-MM-DD
 - **Scope:** <module / system / repository>
 - **Supersedes:** <ADR or none>
-- **Related:** <architecture / contract / module-map links, only when useful>
+- **Related:** <architecture / contract / codebase-map links, only when useful>
 
 ## Context
 
@@ -30,4 +30,4 @@
 
 ## Authority updates
 
-- <living architecture/contract/module-map authority affected by this decision>
+- <living architecture/contract/codebase-map authority affected by this decision>

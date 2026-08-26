@@ -8,6 +8,26 @@ L’objectif n’est pas de multiplier les documents, les agents ou les étapes 
 
 Ce dépôt représente l’état actuel de cette pratique. Il est amené à évoluer continuellement.
 
+## Positionnement : Spec-Driven Development
+
+Le workflow s’inscrit dans une logique de **Spec-Driven Development (SDD)** au sens large : expliciter le **quoi**, les contraintes et les critères d’acceptation avant de déléguer le **comment** de l’implémentation.
+
+Il ne repose pas nécessairement sur un unique fichier de spécification. Sur un projet existant, la spécification utile peut être répartie entre plusieurs autorités : roadmap, architecture, ADR, contrats, plans de phase et tranche courante.
+
+Le workflow va au-delà d’une simple séquence spécification → implémentation en ajoutant notamment :
+
+- des autorités vivantes et séparées par responsabilité ;
+- un chargement progressif du contexte ;
+- des contrats et invariants explicites ;
+- une validation proportionnée au risque ;
+- une review indépendante adaptée au changement ;
+- une boucle de remédiation ;
+- une qualification à échelle représentative lorsque nécessaire ;
+- un statut `BLOCKED` pour éviter d’inventer silencieusement une décision manquante ;
+- un checkpoint anti-dérive lorsque les corrections locales commencent à remettre en cause la conception.
+
+Il ne s’agit pas d’une implémentation de GitHub Spec Kit ou d’un autre framework SDD particulier. Le principe est utilisé comme base puis étendu selon les besoins rencontrés sur les projets.
+
 ## Principes
 
 ### Une autorité principale par information normative
@@ -26,9 +46,9 @@ Le contexte est chargé progressivement à partir de la tâche courante, des rè
 
 Le workflow distingue :
 
-* **l’état de raisonnement** : hypothèses, alternatives, discussion, découpage et arbitrages ;
-* **l’état d’autorité** : connaissance durable et acceptée du projet conservée dans le dépôt ;
-* **l’état d’exécution** : implémentation, validations, reviews, remédiations et rapports de run.
+- **l’état de raisonnement** : hypothèses, alternatives, discussion, découpage et arbitrages ;
+- **l’état d’autorité** : connaissance durable et acceptée du projet conservée dans le dépôt ;
+- **l’état d’exécution** : implémentation, validations, reviews, remédiations et rapports de run.
 
 Une idée discutée ne devient pas automatiquement une décision du projet, et un rapport d’exécution ne devient pas automatiquement une autorité.
 
@@ -36,7 +56,7 @@ Une idée discutée ne devient pas automatiquement une décision du projet, et u
 
 Le travail est découpé en tranches cohérentes disposant d’un objectif, d’un périmètre et de critères de validation compréhensibles.
 
-Le découpage suit les responsabilités et les invariants en interaction, plutôt qu’un nombre arbitraire de fichiers ou de lignes de code.
+Le découpage suit les responsabilités et les invariants en interaction plutôt qu’un nombre arbitraire de fichiers ou de lignes de code.
 
 Le cadre reste volontairement flexible : un agent peut identifier qu’un dépassement du plan initial est nécessaire, mais celui-ci doit être rendu explicite et justifié plutôt que devenir une dérive silencieuse.
 
@@ -50,22 +70,22 @@ Selon le projet et le risque, la validation peut inclure tests, analyse statique
 
 L’implémentation et la review sont séparées.
 
-Selon le changement, le workflow sélectionne le plus petit ensemble de reviewers spécialisés nécessaire, par exemple :
+L’agent principal sélectionne le plus petit ensemble de reviewers spécialisés nécessaire selon la nature du changement. Une tranche peut donc nécessiter plusieurs reviewers, un seul, ou aucun reviewer de code lorsqu’une review n’apporte pas de valeur.
 
-* conformité au contrat et au périmètre ;
-* correctness comportementale ;
-* qualité des tests et de la validation ;
-* architecture, ownership et cohésion structurelle.
+Les dimensions disponibles comprennent notamment :
 
-Des analyses déterministes telles que SonarQube peuvent compléter ces reviews lorsqu’elles sont configurées et pertinentes.
+- conformité au contrat et au périmètre ;
+- correctness comportementale ;
+- qualité des tests et de la validation ;
+- architecture, ownership et cohésion structurelle.
 
-Les résultats sont consolidés avant acceptation et les constats remédiables peuvent être corrigés dans une boucle locale de validation et de re-review.
+Des analyses déterministes telles que SonarQube peuvent compléter ces reviews lorsqu’elles sont configurées, disponibles et pertinentes. Elles ne sont pas obligatoires par défaut.
 
 ### `BLOCKED` est un résultat valide
 
 Un agent ne doit pas inventer une décision structurante uniquement pour terminer une tâche.
 
-Une tranche peut se terminer explicitement en `BLOCKED` lorsqu’une décision manque, que des autorités se contredisent, qu’une preuve nécessaire ne peut être obtenue ou que la conception courante ne permet pas de satisfaire le contrat.
+Une tranche peut se terminer explicitement en `BLOCKED` lorsqu’une décision manque, que des autorités se contredisent, qu’une preuve nécessaire ne peut pas être obtenue ou que la conception courante ne permet pas de satisfaire le contrat.
 
 ### Réévaluation avant accumulation des corrections
 
@@ -89,31 +109,34 @@ L’objectif est de conserver le workflow aussi simple que possible sans perdre 
 
 ```mermaid
 flowchart TD
-    A[Discussion / raisonnement] --> B[Roadmap / phase / tranche]
+    A[Discussion / raisonnement] --> B[Spécification / autorités / tranche]
     B --> C[Prompt d'exécution borné]
 
     C --> D[Lecture progressive des autorités]
     D --> E[Implémentation]
     E --> F[Validation et preuves]
 
-    F --> G[Review indépendante adaptée au changement]
-    G --> H[Analyse déterministe si applicable]
+    F --> G[Classifier le changement]
+    G --> H[Review indépendante adaptée<br/>si nécessaire]
+    G --> I[Analyse déterministe<br/>si applicable]
 
-    H --> I{Constats ?}
+    H --> J[Consolidation]
+    I --> J
 
-    I -->|Remédiables| J[Remédiation ciblée]
-    J --> K[Revalidation]
-    K --> G
+    J --> K{Constat matériel ?}
+    K -->|Remédiable| L[Remédiation ciblée]
+    L --> M[Revalidation / re-review ciblée]
+    M --> J
 
-    I -->|Aucun blocker matériel| L[PASSED]
-    I -->|Décision / preuve / conception bloquante| M[BLOCKED]
+    K -->|Aucun blocker| N[PASSED]
+    K -->|Décision / preuve / conception bloquante| O[BLOCKED]
 
-    L --> N[Rapport final]
-    M --> N
+    N --> P[Rapport final]
+    O --> P
 
-    N --> O[Réévaluation utilisateur + IA]
-    O --> P[Authorities / roadmap / tranche suivante]
-    P --> Q[Commit / point de rollback]
+    P --> Q[Réévaluation utilisateur + IA]
+    Q --> R[Autorités / roadmap / tranche suivante]
+    R --> S[Commit / point de rollback]
 ```
 
 Le chemin exact dépend de la taille, du risque et de la nature du projet.
@@ -122,16 +145,16 @@ Le chemin exact dépend de la taille, du risque et de la nature du projet.
 
 Le workflow définit plusieurs autorités possibles, sans imposer leur présence systématique.
 
-| Autorité          | Rôle                                                      |
-| ----------------- | --------------------------------------------------------- |
-| `AGENTS.md`       | Règles permanentes applicables au travail des agents      |
-| `ARCHITECTURE.md` | Architecture actuellement acceptée                        |
-| `CODEBASE_MAP.md` | Routage compact entre responsabilités, code et autorités  |
-| `adr/*`           | Justification des décisions architecturales durables      |
-| `contracts/*`     | Invariants, frontières et comportements normatifs actuels |
-| `ROADMAP.md`      | Trajectoire, état du projet, phases et gates              |
-| `phases/*`        | Détail optionnel des phases complexes                     |
-| `qualification/*` | Preuves, mesures et résultats de qualification            |
+| Autorité | Rôle |
+| --- | --- |
+| `AGENTS.md` | Règles permanentes applicables au travail des agents |
+| `ARCHITECTURE.md` | Architecture actuellement acceptée |
+| `CODEBASE_MAP.md` | Routage compact entre responsabilités, code et autorités |
+| `adr/*` | Justification des décisions architecturales durables |
+| `contracts/*` | Invariants, frontières et comportements normatifs actuels |
+| `ROADMAP.md` | Trajectoire, état du projet, phases et gates |
+| `phases/*` | Détail optionnel des phases complexes |
+| `qualification/*` | Preuves, mesures et résultats de qualification |
 
 Tous ces documents ne sont pas nécessaires sur un petit projet.
 
@@ -141,79 +164,70 @@ Le modèle complet est décrit dans [`DOCUMENTATION_MODEL.md`](DOCUMENTATION_MOD
 
 ### Workflow global
 
-[`ENGINEERING_WORKFLOW.md`](ENGINEERING_WORKFLOW.md) décrit le processus complet : raisonnement, découpage, exécution, validation, review, remédiation, gestion des blockers, checkpoint anti-dérive, qualification, provenance et points de rollback.
+- [`ENGINEERING_WORKFLOW.md`](ENGINEERING_WORKFLOW.md) — processus complet : raisonnement, spécification, découpage, exécution, validation, review, remédiation, blockers, checkpoint anti-dérive, qualification, provenance et rollback.
+- [`DOCUMENTATION_MODEL.md`](DOCUMENTATION_MODEL.md) — autorités documentaires, responsabilités et routage progressif du contexte.
 
-[`DOCUMENTATION_MODEL.md`](DOCUMENTATION_MODEL.md) définit les différentes autorités documentaires, leurs responsabilités et le routage progressif du contexte.
+### Base agent
 
-### Agents
+- [`agents/AGENTS_BASE_TEMPLATE.md`](agents/AGENTS_BASE_TEMPLATE.md) — base de `AGENTS.md` à adapter à chaque projet.
 
-[`agents/AGENTS_BASE_TEMPLATE.md`](agents/AGENTS_BASE_TEMPLATE.md) fournit une base de `AGENTS.md` à adapter à chaque projet.
+### Review et remédiation
 
-Les configurations suivantes définissent actuellement plusieurs reviewers spécialisés :
+- [`review/REVIEW_AND_REMEDIATION_WORKFLOW.md`](review/REVIEW_AND_REMEDIATION_WORKFLOW.md) — politique générale de review indépendante et proportionnée.
+- [`review/review-and-remediate/SKILL.md`](review/review-and-remediate/SKILL.md) — implémentation opérationnelle actuelle de la gate de review/remédiation.
 
-* [`agents/contract-reviewer.toml`](agents/contract-reviewer.toml)
-* [`agents/correctness-reviewer.toml`](agents/correctness-reviewer.toml)
-* [`agents/tests-reviewer.toml`](agents/tests-reviewer.toml)
-* [`agents/architecture-reviewer.toml`](agents/architecture-reviewer.toml)
+Les configurations de reviewers sont regroupées avec ce skill :
 
-[`agents/review-and-remediate/SKILL.md`](agents/review-and-remediate/SKILL.md) contient le workflow opérationnel de sélection des reviewers, consolidation, remédiation et qualification finale d’une tranche.
+- [`review/review-and-remediate/contract-reviewer.toml`](review/review-and-remediate/contract-reviewer.toml)
+- [`review/review-and-remediate/correctness-reviewer.toml`](review/review-and-remediate/correctness-reviewer.toml)
+- [`review/review-and-remediate/tests-reviewer.toml`](review/review-and-remediate/tests-reviewer.toml)
+- [`review/review-and-remediate/architecture-reviewer.toml`](review/review-and-remediate/architecture-reviewer.toml)
+
+Leur emplacement dans ce dépôt sert à regrouper les éléments du workflow. Leur installation effective peut nécessiter de les placer ou de les adapter selon les conventions de l’outil agentique utilisé.
 
 ### Architecture
 
-* [`architecture/ARCHITECTURE_GUIDE.md`](architecture/ARCHITECTURE_GUIDE.md)
-* [`architecture/ARCHITECTURE_TEMPLATE.md`](architecture/ARCHITECTURE_TEMPLATE.md)
-* [`architecture/ARCHITECTURE_CHANGE_WORKFLOW.md`](architecture/ARCHITECTURE_CHANGE_WORKFLOW.md)
-
-Ces fichiers définissent le rôle de l’autorité architecturale et la manière de gérer les changements architecturaux durables.
+- [`architecture/ARCHITECTURE_GUIDE.md`](architecture/ARCHITECTURE_GUIDE.md)
+- [`architecture/ARCHITECTURE_TEMPLATE.md`](architecture/ARCHITECTURE_TEMPLATE.md)
+- [`architecture/ARCHITECTURE_CHANGE_WORKFLOW.md`](architecture/ARCHITECTURE_CHANGE_WORKFLOW.md)
 
 ### Cartographie du code
 
-* [`codebase-map/CODEBASE_MAP_GUIDE.md`](codebase-map/CODEBASE_MAP_GUIDE.md)
-* [`codebase-map/CODEBASE_MAP_TEMPLATE.md`](codebase-map/CODEBASE_MAP_TEMPLATE.md)
+- [`codebase-map/CODEBASE_MAP_GUIDE.md`](codebase-map/CODEBASE_MAP_GUIDE.md)
+- [`codebase-map/CODEBASE_MAP_TEMPLATE.md`](codebase-map/CODEBASE_MAP_TEMPLATE.md)
 
 Le codebase map est conçu comme un **routeur de contexte**, pas comme une reproduction exhaustive de l’arborescence du dépôt.
 
 ### ADR
 
-* [`adr/ADR_GUIDE.md`](adr/ADR_GUIDE.md)
-* [`adr/ADR_TEMPLATE.md`](adr/ADR_TEMPLATE.md)
-
-Les ADR conservent le contexte et la justification des décisions architecturales durables.
+- [`adr/ADR_GUIDE.md`](adr/ADR_GUIDE.md)
+- [`adr/ADR_TEMPLATE.md`](adr/ADR_TEMPLATE.md)
 
 ### Contrats
 
-* [`contracts/CONTRACT_GUIDE.md`](contracts/CONTRACT_GUIDE.md)
-* [`contracts/CONTRACT_TEMPLATE.md`](contracts/CONTRACT_TEMPLATE.md)
-
-Les contrats décrivent ce qui doit actuellement rester vrai à une frontière ou pour un comportement donné.
+- [`contracts/CONTRACT_GUIDE.md`](contracts/CONTRACT_GUIDE.md)
+- [`contracts/CONTRACT_TEMPLATE.md`](contracts/CONTRACT_TEMPLATE.md)
 
 ### Roadmap et phases
 
-* [`roadmap/ROADMAP_GUIDE.md`](roadmap/ROADMAP_GUIDE.md)
-* [`roadmap/ROADMAP_TEMPLATE.md`](roadmap/ROADMAP_TEMPLATE.md)
-* [`roadmap/PHASE_PLAN_TEMPLATE.md`](roadmap/PHASE_PLAN_TEMPLATE.md)
-
-La roadmap reste volontairement compacte. Un document de phase séparé n’est créé que lorsqu’il réduit réellement la complexité.
+- [`roadmap/ROADMAP_GUIDE.md`](roadmap/ROADMAP_GUIDE.md)
+- [`roadmap/ROADMAP_TEMPLATE.md`](roadmap/ROADMAP_TEMPLATE.md)
+- [`roadmap/PHASE_PLAN_TEMPLATE.md`](roadmap/PHASE_PLAN_TEMPLATE.md)
 
 ### Génération des prompts et sélection du modèle
 
-[`prompts/CODEX_PROMPT_GUIDE.md`](prompts/CODEX_PROMPT_GUIDE.md) décrit la transformation du raisonnement et des autorités du projet en contrat d’exécution borné pour Codex.
-
-[`prompts/MODEL_REASONING_SELECTION_GUIDE.md`](prompts/MODEL_REASONING_SELECTION_GUIDE.md) propose une sélection du modèle et du niveau de raisonnement fondée sur le **coût cognitif réel de la tranche**, plutôt que sur sa taille brute.
-
-### Review et remédiation
-
-[`review/REVIEW_AND_REMEDIATION_WORKFLOW.md`](review/REVIEW_AND_REMEDIATION_WORKFLOW.md) décrit les principes généraux de la review indépendante, de la consolidation des constats et de la remédiation.
-
-Le skill [`agents/review-and-remediate/SKILL.md`](agents/review-and-remediate/SKILL.md) en constitue l’implémentation opérationnelle actuelle.
+- [`prompts/CODEX_PROMPT_GUIDE.md`](prompts/CODEX_PROMPT_GUIDE.md) — transformation du raisonnement et des autorités du projet en contrat d’exécution borné pour Codex.
+- [`prompts/MODEL_REASONING_SELECTION_GUIDE.md`](prompts/MODEL_REASONING_SELECTION_GUIDE.md) — sélection du modèle et du niveau de raisonnement à partir du coût cognitif réel de la tranche plutôt que de sa taille brute.
 
 ## Agnosticisme et implémentation actuelle
 
-Les principes d’ingénierie, le modèle documentaire, la gestion du contexte, le découpage, les contrats, les gates et la séparation entre implémentation et review sont conçus pour rester largement indépendants d’un fournisseur ou d’un modèle particulier.
+Les principes d’ingénierie, le modèle documentaire, le Spec-Driven Development, la gestion du contexte, les contrats, les gates et la séparation entre implémentation et review sont conçus pour rester largement indépendants d’un fournisseur ou d’un modèle particulier.
 
-L’implémentation opérationnelle actuelle utilise cependant principalement **ChatGPT / OpenAI Codex** et contient donc des fichiers et configurations spécifiques à cet environnement.
+L’implémentation opérationnelle actuelle est toutefois principalement construite autour de **ChatGPT / OpenAI Codex** et contient donc des prompts, configurations de reviewers, modèles et mécanismes spécifiques à cet environnement.
 
-Cette séparation est volontaire : les principes peuvent rester stables tandis que l’outillage évolue avec les capacités disponibles.
+Le workflow est donc **agnostique dans ses principes, mais pas entièrement dans son implémentation actuelle**.
+
+Cette séparation est volontaire : les principes peuvent rester utiles tandis que l’outillage évolue.
 
 ## Utilisation
 
@@ -223,12 +237,13 @@ Il sert plutôt de base dans laquelle sélectionner les éléments nécessaires 
 
 1. définir les règles permanentes utiles dans `AGENTS.md` ;
 2. créer uniquement les autorités documentaires dont le projet a réellement besoin ;
-3. maintenir la roadmap comme routeur de l’état courant ;
-4. découper le travail en tranches cohérentes ;
-5. charger progressivement les autorités pertinentes ;
-6. valider chaque tranche avec des preuves adaptées au risque ;
-7. utiliser une review indépendante proportionnée au changement ;
-8. faire évoluer les autorités lorsque la vérité acceptée du projet change.
+3. expliciter suffisamment la spécification, les contrats et les critères d’acceptation avant l’implémentation ;
+4. maintenir la roadmap comme routeur de l’état courant ;
+5. découper le travail en tranches cohérentes ;
+6. charger progressivement les autorités pertinentes ;
+7. valider chaque tranche avec des preuves adaptées au risque ;
+8. utiliser une review indépendante proportionnée au changement ;
+9. faire évoluer les autorités lorsque la vérité acceptée du projet change.
 
 Les mécanismes inutiles doivent rester absents.
 
@@ -248,11 +263,11 @@ Ce dépôt doit être considéré comme une **photographie vivante d’une prati
 
 Le workflow évolue en fonction :
 
-* des problèmes réellement rencontrés sur les projets ;
-* des mécanismes qui se révèlent utiles ou inutilement complexes ;
-* de l’évolution des capacités de raisonnement et d’autonomie des modèles ;
-* des nouveaux outils disponibles ;
-* du retour obtenu sur les validations et les reviews.
+- des problèmes réellement rencontrés sur les projets ;
+- des mécanismes qui se révèlent utiles ou inutilement complexes ;
+- de l’évolution des capacités de raisonnement et d’autonomie des modèles ;
+- des nouveaux outils disponibles ;
+- du retour obtenu sur les validations et les reviews.
 
 Une règle ou une couche devenue inutile peut être supprimée aussi naturellement qu’une nouvelle peut être ajoutée.
 

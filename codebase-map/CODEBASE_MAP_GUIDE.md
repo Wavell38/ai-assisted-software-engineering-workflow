@@ -23,7 +23,7 @@ Pour chaque nœud, conserver idéalement :
 
 Ne pas créer un nœud pour chaque sous-dossier.
 
-Codex peut créer des sous-dossiers lorsqu'un groupe de fichiers forme une sous-responsabilité cohésive. Le module map ne change que si cette sous-responsabilité devient elle-même une frontière utile à comprendre ou router indépendamment.
+Codex peut créer des sous-dossiers lorsqu'un groupe de fichiers forme une sous-responsabilité cohésive. Le codebase map ne change que si cette sous-responsabilité devient elle-même une frontière utile à comprendre ou router indépendamment.
 
 À l'inverse, lorsqu'un nouveau module architectural est ajouté, son nœud doit être ajouté au graphe même si son implémentation initiale est petite.
 
