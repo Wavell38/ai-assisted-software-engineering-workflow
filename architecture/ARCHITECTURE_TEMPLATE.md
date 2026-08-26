@@ -33,5 +33,5 @@ flowchart LR
 
 ## Related authorities
 
-- [Module map](MODULE_MAP.md)
+- [Codebase map](CODEBASE_MAP.md)
 - <ADR / contract links only when useful>
