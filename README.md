@@ -247,6 +247,22 @@ Il sert plutôt de base dans laquelle sélectionner les éléments nécessaires 
 
 Les mécanismes inutiles doivent rester absents.
 
+## Outils associés
+
+### [`prompts_archiver`](https://github.com/Wavell38/prompts_archiver)
+
+Outil local utilisé en complément du workflow pour conserver une **provenance versionnée des runs Codex**.
+
+Pour chaque tour finalisé dans un dépôt activé, il peut archiver sous `.ai-history/` :
+
+- le prompt d’exécution exact (`prompt.md`) ;
+- le rapport final produit par l’agent (`report.md`) ;
+- un ensemble de métadonnées de run (`run.json`), notamment liées au contexte Git, au runtime et au cycle d’exécution.
+
+L’objectif est de pouvoir relier plus facilement **ce qui a été demandé à l’agent, ce qu’il a rapporté et l’évolution effective du dépôt**, notamment autour des commits et points de rollback.
+
+Ces archives constituent de la provenance et non une autorité du projet. Elles doivent être relues avant toute publication vers un dépôt public : les prompts, rapports ou métadonnées peuvent contenir des informations sensibles et l’outil n’effectue pas actuellement de détection ou de caviardage automatique.
+
 ## Langues
 
 Les guides de ce dépôt sont principalement rédigés en français.
