@@ -1,5 +1,7 @@
 # Architecture
 
+> Describe the currently accepted architecture. Replace superseded structure instead of preserving decision or implementation history here.
+
 ## Architectural model
 
 <e.g. modular monolith / hexagonal / layered / ECS / other, with only the project-specific meaning that matters.>
@@ -20,7 +22,7 @@
 
 ```mermaid
 flowchart LR
-    A[Module A] --> B[Module B]
+    A["Module A"] --> B["Module B"]
 ```
 
 ## Major flows

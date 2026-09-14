@@ -120,6 +120,19 @@ QUALIFICATION REPORT
 ARTIFACTS / TESTS / TOOLS
 ```
 
+## Évolution d'un rapport
+
+Un rapport de qualification décrit un ensemble de preuves obtenu dans des conditions identifiées.
+
+- tant qu'une même qualification est en cours, le rapport peut être complété avec les résultats
+  de cette exécution ;
+- une fois un verdict durable publié, une nouvelle exécution matériellement différente ne doit
+  pas réécrire silencieusement la preuve antérieure ;
+- créer un nouveau rapport ou une révision explicitement identifiée lorsque la nouvelle preuve
+  change le baseline, les conditions, le verdict ou la portée de la conclusion ;
+- la roadmap et les autorités vivantes reflètent l'état accepté courant et référencent la preuve
+  appropriée ; elles ne recopient pas la chronologie du rapport.
+
 ## Nommage
 
 Préférer des identifiants stables et courts liés à la phase ou au gate.

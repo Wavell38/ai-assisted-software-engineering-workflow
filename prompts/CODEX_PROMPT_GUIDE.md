@@ -16,6 +16,18 @@ Pour chaque prompt Codex, privilégie une forte densité informationnelle sans s
 
 Tiens compte des sources projet disponibles et à jour (`AGENTS.md`, architecture, roadmap, ADR/design docs, contrats et autres autorités pertinentes).
 
+Lorsque la tranche peut créer ou modifier sémantiquement une autorité structurée, borne
+explicitement le **delta documentaire** attendu. N'utilise pas une instruction générique du
+type « update documentation as needed ». Indique seulement les autorités dont l'état peut
+réellement changer et le type de changement attendu. Le delta documentaire peut explicitement
+être `none`.
+
+Lorsque le skill `maintain-project-authorities` est installé, demande à Codex de l'utiliser pour
+toute création ou mise à jour sémantique d'une autorité structurée. Le corpus de politique
+documentaire du projet vit sous `docs/engineering/` ; le skill applique
+`docs/engineering/DOCUMENTATION_MODEL.md` et les guides projet correspondants, que le prompt ne
+doit pas recopier.
+
 Traite les décisions explicitement établies dans la conversation courante comme le
 delta de conception à transcrire. Distingue une décision d'une hypothèse, d'une option,
 d'un exemple ou d'une piste encore exploratoire. Ne transforme pas silencieusement une
@@ -76,6 +88,10 @@ Avant de rendre le prompt, vérifie mentalement :
    * les preuves et validations attendues ;
    * les conditions de réussite ou de blocage ?
 6. **Stability test** — le prompt a-t-il durci une hypothèse ou une option discutée en obligation, affaibli une décision établie, ou introduit une nouvelle règle générale qui devrait plutôt vivre dans une autorité du projet ? Si oui, corrige cette dérive.
+7. **Documentation test** — le prompt demande-t-il une mise à jour documentaire vague ou
+   transforme-t-il implicitement un rapport de run en contenu d'autorité ? Si oui, remplace-la
+   par un delta documentaire borné ou supprime la mise à jour lorsqu'aucun état autoritatif ne
+   change.
 
 La réduction de tokens est un bénéfice secondaire. La priorité reste la fiabilité du contrat donné à Codex.
 
@@ -168,15 +184,32 @@ Termine en `BLOCKED` si :
 - <impossibilité de satisfaire un invariant obligatoire>
 - <absence de preuve nécessaire>
 
-## Documentation / roadmap
+## Impact documentaire
 
-<Uniquement si la tranche doit modifier la documentation ou l'état de la roadmap.>
+<Uniquement si la tranche peut créer ou modifier sémantiquement une autorité structurée. Omettre
+cette section lorsqu'aucun delta documentaire n'est attendu.>
 
-Après réussite :
+Déclare le delta **par autorité**, sans demander une synchronisation générique de toute la
+documentation. Exemples de forme :
 
-- <mise à jour>
-- <statut de phase>
-- <prochaine tranche éventuelle>
+- `ROADMAP.md` : <statut / gate / prochaine étape réellement affectés, ou `no change expected`>
+- `CODEBASE_MAP.md` : <ownership / chemin / dépendance stable réellement affectés, ou `no change expected`>
+- `<phase / contract / architecture / qualification>` : <delta précis>
+
+Si `maintain-project-authorities` est installé, l'utiliser pour appliquer ces changements. Le
+skill route la politique depuis le corpus projet sous `docs/engineering/`. S'il n'est pas
+disponible, lire directement `docs/engineering/DOCUMENTATION_MODEL.md` et le guide du type de
+document concerné. Ne pas supposer que les fichiers de prompt/review du dépôt de workflow ont été
+copiés dans le projet.
+
+Après le run :
+
+- ne modifier une autorité que si le fait accepté qu'elle possède a réellement changé ;
+- remplacer l'état supersédé des autorités vivantes au lieu d'y accumuler la chronologie du run ;
+- router la preuve détaillée vers les qualifications et le détail de phase vers le plan de phase ;
+- si un impact documentaire imprévu exige une nouvelle décision structurante, ne pas l'inventer
+  silencieusement : le rendre explicite et terminer `BLOCKED` lorsque cette décision est
+  nécessaire à la conformité de la tranche.
 
 ## Compte rendu final
 
@@ -216,6 +249,11 @@ Supprime toute section sans contenu substantiel.
 Fusionne des sections lorsqu'elles couvrent naturellement le même contrat.
 
 Ne répète pas les règles permanentes du dépôt.
+
+Lorsqu'une section `Impact documentaire` est nécessaire, traite-la comme un contrat de delta :
+elle borne **ce qui peut changer**, elle ne demande pas de recopier le rapport final dans les
+autorités. Une preuve produite par le run n'implique pas à elle seule une modification de roadmap,
+architecture, codebase map ou contrat.
 
 Ne transforme pas une suggestion, une hypothèse ou une possibilité explorée pendant la
 discussion en obligation de tranche sans décision explicite. Inversement, ne rends pas

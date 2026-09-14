@@ -219,6 +219,8 @@ automatiquement au modèle de l'exécuteur.
 - **correctness reviewer** : généralement High ou plus selon le risque ;
 - **architecture reviewer** : Extra High lorsque l'impact architectural est profond ;
 - **tests reviewer** : High pour une validation substantielle ;
+- **documentation reviewer** : High par défaut, avec une capacité suffisante pour confronter le
+  diff au modèle documentaire, aux guides applicables et aux autorités référencées ;
 - reviewers spécialisés : calibrés selon leur risque et stabilisés entre runs
   comparables.
 

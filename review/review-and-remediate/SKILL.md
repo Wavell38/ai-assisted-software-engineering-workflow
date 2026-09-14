@@ -1,6 +1,6 @@
 ---
 name: review-and-remediate
-description: Final review and remediation gate for repository-changing tasks. Use after implementation and initial validation, before the final commit and final report. Isolate the current-task diff, select parallel reviewers, remediate safe findings, and enrich the final acceptance report. Skip code review for no-diff, analysis-only, or .ai-history-only work; classify documentation-only changes separately.
+description: Final review and remediation gate for repository-changing tasks. Use after implementation and initial validation, before the final commit and final report. Isolate the current-task diff, select parallel reviewers, remediate safe findings, and enrich the final acceptance report. Skip review for no-diff, analysis-only, or .ai-history-only work; route semantic structured-documentation changes to the documentation reviewer.
 ---
 
 # Review and remediate
@@ -34,8 +34,11 @@ Use the smallest sufficient reviewer set:
 - No effective diff, analysis-only work, or `.ai-history`-only changes:
   launch no reviewer.
 - Documentation-only changes:
-  launch no code reviewer unless the change alters an authoritative contract,
-  architectural decision, or executable procedure.
+  - ordinary non-authoritative prose: launch no reviewer by default;
+  - semantic changes to one or more structured project authorities: launch
+    `documentation_reviewer`;
+  - when the same change also alters an authoritative contract, architectural decision, or
+    executable procedure, add the applicable existing reviewer(s).
 - Small and local implementation or refactor:
   launch `contract_reviewer` and `correctness_reviewer`.
 - Normal behavioral implementation:
@@ -53,6 +56,10 @@ Use the smallest sufficient reviewer set:
 - Transversal, architectural, public-contract, schema, migration, persistence,
   concurrency, security-sensitive, identity, or canonicalization work:
   also launch `architecture_reviewer`.
+- Whenever the current-task diff semantically changes one or more structured project
+  authorities, also launch exactly one `documentation_reviewer` for the complete documentation
+  scope, even when source code changed in the same task. Do not launch one documentation
+  reviewer per file.
 
 Do not select `architecture_reviewer` solely because generated files, vendored code,
 declarative data, snapshots, or large fixtures have a high line count.
@@ -97,6 +104,18 @@ Give `tests_reviewer`:
 - expected behavior and acceptance criteria;
 - the production and test changes;
 - relevant validation commands and test conventions.
+
+Give `documentation_reviewer`:
+
+- the complete structured-documentation diff for the current task;
+- applicable `AGENTS.md`;
+- repository access sufficient to inspect the changed authorities and their referenced sources.
+
+The reviewer owns its own documentation-policy routing. When `maintain-project-authorities` is
+installed, it must use that skill; otherwise it reads `docs/engineering/DOCUMENTATION_MODEL.md`
+and the applicable project-copied type-specific guides directly. It must not assume the project
+contains the workflow repository's prompt/review/agent-template material. Do not preload every
+guide or launch one documentation reviewer per file.
 
 All reviewers may inspect additional repository files when necessary.
 The supplied references are starting points, not exploration boundaries.

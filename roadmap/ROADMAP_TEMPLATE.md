@@ -1,7 +1,8 @@
 # Roadmap
 
-> Keep this file compact. When a phase has a `Details` document, do not duplicate
+> Keep this file compact and current-state oriented. When a phase has a `Details` document, do not duplicate
 > its scope, tranche list, qualification evidence, implementation history, or decisions here.
+> Replace superseded state instead of appending progress history; do not add a free-form `Progress` log.
 
 ## Current state
 

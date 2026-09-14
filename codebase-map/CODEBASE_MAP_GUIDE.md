@@ -19,6 +19,19 @@ Pour chaque nœud, conserver idéalement :
 - dépendances interdites importantes ;
 - liens vers contrat(s) et ADR pertinents.
 
+## Ce qui n'y appartient pas
+
+Le codebase map ne doit pas contenir :
+
+- progression, statut ou historique de phases/tranches ;
+- résultats détaillés de qualification ou de benchmark ;
+- chronologie d'implémentation ou comptes rendus de runs ;
+- inventaire exhaustif des fichiers, exemples, probes ou outils temporaires ;
+- détails transitoires qui n'aident pas durablement à router une modification ou une lecture.
+
+Un outil ou sous-module de qualification n'apparaît que s'il constitue lui-même une frontière
+stable qu'il est utile de router indépendamment, pas parce qu'une phase l'a créé.
+
 ## Graphe et arborescence physique
 
 Ne pas créer un nœud pour chaque sous-dossier.
@@ -39,9 +52,23 @@ Ajouter un sous-module au graphe lorsqu'au moins une partie de la valeur suivant
 
 Ne pas ajouter de profondeur uniquement pour refléter une organisation esthétique du filesystem.
 
+## Sémantique de l'état
+
+`CODEBASE_MAP.md` est une autorité vivante de **routage actuel**, pas un journal append-only.
+
+- `Owns` décrit les responsabilités stables possédées maintenant, pas les étapes qui ont permis
+  de les construire ou qualifier.
+- Remplacer les descriptions devenues obsolètes au lieu d'ajouter une nouvelle couche
+  chronologique.
+- Un identifiant de phase/tranche ne doit apparaître que s'il est réellement nécessaire pour
+  identifier une autorité ou une frontière encore pertinente ; il ne sert pas à raconter
+  l'historique du module.
+- Lorsque le détail utile appartient à une architecture, un contrat, un plan de phase ou un
+  rapport de qualification, conserver ici uniquement le routage vers cette autorité.
+
 ## Taille
 
-Le graphe doit rester compact. Si la carte globale devient trop grande, conserver une vue globale et éventuellement des cartes locales uniquement pour les zones qui justifient réellement cette profondeur.
+Le graphe et les entrées doivent rester compacts. Si une entrée nécessite plusieurs paragraphes pour expliquer l'implémentation, vérifier d'abord que ce détail appartient réellement au codebase map et router vers une autorité spécialisée lorsque possible. Si la carte globale devient trop grande malgré cette discipline, conserver une vue globale et éventuellement des cartes locales uniquement pour les zones qui justifient réellement cette profondeur.
 
 ## Mise à jour
 
@@ -52,5 +79,10 @@ Mettre à jour `CODEBASE_MAP.md` lorsqu'une modification acceptée :
 - change ses dépendances majeures ;
 - change son chemin principal ;
 - ajoute/supprime une autorité contractuelle utile au routage.
+
+Lors d'une mise à jour, retirer ou remplacer les informations de routage rendues obsolètes par le
+nouvel état ; ne pas conserver leur chronologie dans la carte. Une phase ou qualification
+terminée ne justifie pas à elle seule une mise à jour si aucune frontière stable de routage n'a
+changé.
 
 Une simple extraction de fichiers vers un sous-dossier interne ne nécessite généralement pas de mise à jour.

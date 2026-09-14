@@ -12,6 +12,16 @@ Elle doit permettre de répondre rapidement à :
 - quelles sont les prochaines étapes ?
 - où se trouve le détail lorsqu'une phase en nécessite davantage ?
 
+## Sémantique de l'état
+
+`ROADMAP.md` est une autorité vivante de trajectoire et d'état courant, pas un journal
+append-only. Lorsqu'une phase évolue, remplacer son état/gate/handoff devenu obsolète plutôt que
+d'ajouter la chronologie des runs précédents.
+
+Une phase terminée conserve uniquement son résultat terminal utile au routage. Son historique de
+tranches, mesures, blockers résolus et qualifications détaillées reste dans le plan de phase et
+les rapports spécialisés.
+
 ## Ce qui appartient dans la roadmap
 
 - phases et sous-phases significatives ;
@@ -30,7 +40,8 @@ Elle doit permettre de répondre rapidement à :
 - résultats détaillés de tests, benchmarks ou qualifications ;
 - listes détaillées de tranches lorsqu'un document de phase les possède déjà ;
 - longs comptes rendus Codex ;
-- duplication de contenu disponible dans une autorité spécialisée.
+- duplication de contenu disponible dans une autorité spécialisée ;
+- champ `Progress` utilisé comme journal chronologique de tranches, runs, mesures ou remédiations.
 
 ## Règle de compacité
 
@@ -54,6 +65,14 @@ Par défaut, une phase tient en :
 - gate/résultat important en une ligne lorsque utile ;
 - dépendances majeures lorsque utiles ;
 - lien `Details` lorsque le détail existe.
+
+Le schéma normal n'a pas besoin d'un champ libre `Progress`. Si une information de progression
+est nécessaire pour décider de la suite, la représenter comme état/gate/`Next`/handoff courant ;
+si elle nécessite davantage de contexte, la déplacer dans le document de phase.
+
+`Current state` doit rester un résumé du présent : phase active, statut, gate/handoff et prochaine
+étape, avec éventuellement le dernier jalon terminé. Il ne doit pas récapituler l'historique des
+phases closes.
 
 Si davantage d'explications sont nécessaires pour comprendre ou exécuter la phase,
 créer ou enrichir le document de phase au lieu d'allonger la roadmap.
@@ -105,7 +124,8 @@ Mettre à jour la roadmap lorsqu'un changement accepté modifie réellement :
 Ne pas annoncer une phase comme `DONE` avant que les preuves/validations nécessaires aient été obtenues.
 
 Une mise à jour de phase ne justifie pas de recopier son rapport ou ses preuves dans
-la roadmap. Mettre à jour uniquement l'état et le routage nécessaires.
+la roadmap. Mettre à jour uniquement l'état et le routage nécessaires, et supprimer/remplacer
+l'état devenu obsolète au lieu de conserver sa chronologie.
 
 ## Routage
 

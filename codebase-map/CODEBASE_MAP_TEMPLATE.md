@@ -2,11 +2,13 @@
 
 This file is a compact context router. It maps architectural responsibilities to their primary code locations and authorities; it is not a complete file tree.
 
+> Describe current stable routing only. Do not record phase/tranche progress, qualification evidence, or implementation chronology here. Replace superseded routing state instead of accumulating history.
+
 ## Overview
 
 ```mermaid
 flowchart LR
-    A[Module A] --> B[Module B]
+    A["Module A"] --> B["Module B"]
 ```
 
 ## Modules

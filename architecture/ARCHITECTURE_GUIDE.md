@@ -14,6 +14,10 @@ Il répond principalement à :
 
 Il ne doit pas devenir un historique des décisions : ce rôle appartient aux ADR.
 
+`ARCHITECTURE.md` est une autorité vivante de l'état architectural accepté. Lorsqu'une structure
+acceptée change, remplacer la description devenue obsolète et router le pourquoi durable vers un
+ADR plutôt que d'accumuler la chronologie dans l'architecture.
+
 ## Contenu recommandé
 
 Conserver uniquement les sections utiles au projet :

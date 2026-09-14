@@ -61,6 +61,18 @@ Le contrat ne doit pas devenir une documentation parallèle exhaustive du code. 
 
 Si le code peut être modifié librement sans changer une propriété contractuelle, cette propriété n'a probablement pas besoin d'être décrite dans le contrat.
 
+## Mise à jour
+
+Un contrat est une autorité vivante : lorsqu'une propriété normative change, remplacer la
+formulation devenue obsolète au lieu d'ajouter un historique des versions ou des runs dans le
+contrat.
+
+- conserver uniquement l'état contractuel actuellement applicable ;
+- laisser la rationale durable dans les ADR ;
+- laisser les preuves et résultats détaillés dans les qualifications ;
+- lorsqu'une évolution du contrat modifie une décision architecturale durable, créer ou
+  superseder l'ADR correspondant au lieu de faire porter ce changement historique au contrat.
+
 ## Critère de qualité
 
 Après lecture du contrat, un agent ou reviewer doit pouvoir déterminer sans ambiguïté :

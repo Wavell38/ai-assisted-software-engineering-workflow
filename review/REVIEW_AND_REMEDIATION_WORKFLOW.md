@@ -17,13 +17,21 @@ Il sélectionne **le plus petit ensemble de reviewers suffisant** :
 | Type de changement | Review par défaut |
 | --- | --- |
 | Pas de diff effectif, analyse seule, provenance `.ai-history/**` seule | Aucun reviewer |
-| Documentation seule | Aucun reviewer de code, sauf changement d’autorité, contrat, décision architecturale ou procédure exécutable |
+| Documentation ordinaire non autoritative | Aucun reviewer par défaut |
+| Modification sémantique d'une ou plusieurs autorités structurées | Ajouter documentation |
 | Implémentation/refactor petit et local | Contrat + correctness |
 | Implémentation comportementale normale | Contrat + correctness + tests |
 | Changement matériel de structure, ownership, dépendances, frontières ou abstraction partagée | Ajouter architecture |
 | Travail transversal, architectural, contrat public, schéma, migration, persistance, concurrence, sécurité, identité ou canonicalisation | Ajouter architecture |
 
 La taille brute d’un fichier ou d’un diff n’est pas un critère suffisant pour sélectionner une review architecturale.
+
+Lorsqu'un diff modifie sémantiquement une autorité structurée, ajouter
+`documentation_reviewer` même si le même diff contient aussi du code. Un seul reviewer
+documentaire couvre l'ensemble des autorités documentaires concernées par la tranche ; ne pas
+lancer un reviewer par fichier. Si le changement documentaire modifie également une décision
+architecturale, un contrat ou une procédure exécutable, ajouter les reviewers spécialisés
+correspondants.
 
 Les reviewers sélectionnés sont lancés en parallèle lorsqu’il y en a plusieurs.
 
@@ -54,7 +62,13 @@ Le contexte fourni dépend de leur responsabilité :
 - **contract reviewer** : prompt d’implémentation complet, diff cible, autorités et critères d’acceptation ;
 - **correctness reviewer** : objectif comportemental, invariants, diff cible et accès au code nécessaire pour tracer le comportement ;
 - **tests reviewer** : comportement attendu, changements production/tests, critères d’acceptation et validations pertinentes ;
-- **architecture reviewer** : diff, autorités architecturales, frontières, ownership, abstractions partagées et unités sources nécessaires.
+- **architecture reviewer** : diff, autorités architecturales, frontières, ownership, abstractions partagées et unités sources nécessaires ;
+- **documentation reviewer** : diff documentaire complet de la tranche, `AGENTS.md` et accès au
+  dépôt. Le reviewer route lui-même son contexte via `maintain-project-authorities` lorsqu'il est
+  installé ; sinon il lit `docs/engineering/DOCUMENTATION_MODEL.md`, les guides applicables copiés
+  dans le projet et uniquement les autorités nécessaires. Il ne suppose pas que les fichiers
+  `prompt/`, `review/` ou `agent/` du dépôt de workflow existent dans le projet. Il vérifie toutes
+  les autorités concernées dans une seule passe.
 
 Les reviewers peuvent inspecter d’autres fichiers lorsqu’ils en ont besoin. Les références fournies sont des points d’entrée, pas des frontières d’exploration.
 
@@ -137,6 +151,7 @@ Selon le changement, l’acceptation prend en compte :
 - les invariants applicables ;
 - les validations requises ;
 - les frontières architecturales ;
+- la discipline d'autorité/routage documentaire lorsqu'une autorité structurée a changé ;
 - les reviewers effectivement sélectionnés ;
 - les analyses déterministes effectivement exécutées ;
 - les remédiations et vérifications finales ;

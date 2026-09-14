@@ -47,6 +47,8 @@ flowchart TD
 
 - L'ADR conserve le **pourquoi** d'une décision durable ; l'architecture, les contrats
   et le codebase map conservent l'état vivant correspondant.
+- Lorsque le skill `maintain-project-authorities` est installé, l'utiliser pour appliquer les
+  créations ou mises à jour sémantiques des autorités structurées concernées.
 - Une décision structurante absente des autorités ne doit pas être inventée
   silencieusement pendant l'implémentation.
 - Une extraction interne de fichiers ou de sous-dossiers n'est pas automatiquement un

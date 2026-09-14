@@ -18,6 +18,11 @@ La vérité spécifique au projet réside dans les autorités du dépôt défini
 
 Le workflow explique comment le travail passe de la discussion à un run Codex borné, comment ce run est revu en interne, puis comment son rapport final revient à l’utilisateur et à ChatGPT pour décider de la suite.
 
+Lorsque le skill global `maintain-project-authorities` est installé, il constitue la procédure
+opérationnelle de référence pour créer, modifier sémantiquement, revoir ou compacter les
+autorités structurées. Il applique `DOCUMENTATION_MODEL.md` et les guides du dépôt ; il ne les
+remplace pas comme source d'autorité.
+
 ---
 
 ## Modèle de base
@@ -58,6 +63,11 @@ Il contient les connaissances durables et acceptées du projet :
 - autres autorités explicites du projet.
 
 Chaque fait normatif doit avoir un emplacement autoritaire principal unique.
+
+Les autorités vivantes représentent l'état actuellement accepté et sont mises à jour en
+remplaçant l'état supersédé, pas en accumulant la chronologie des runs. Les ADR et rapports de
+qualification conservent au contraire des décisions ou preuves durables selon leur propre
+sémantique.
 
 ### 3. État d’exécution
 
@@ -200,6 +210,11 @@ Il est généré à partir de :
 - le delta spécifique à la tranche.
 
 Le prompt ne doit pas dupliquer les informations durables déjà disponibles dans les documents autoritaires.
+
+Lorsque l'impact documentaire est prévisible, le prompt doit borner le **delta documentaire**
+attendu au niveau des autorités concernées (par exemple état/gate de roadmap, ownership de
+codebase map, rapport de qualification) au lieu de demander génériquement de recopier le rapport
+« dans la documentation ». Un delta peut explicitement être `none`.
 
 Son rôle est de définir :
 
@@ -647,12 +662,29 @@ L’objectif n’est pas d’éviter les sous-tranches : certaines difficultés 
 # Mises à jour de documentation et de roadmap
 
 La documentation autoritaire doit être mise à jour lorsque la vérité acceptée du projet change.
+Un rapport de run, une preuve ou une chronologie d'implémentation ne devient pas automatiquement
+une autorité.
 
-Un run Codex peut mettre lui-même à jour la documentation lorsque la tranche le demande explicitement.
+Avant d'écrire, classifier l'information nouvelle selon `DOCUMENTATION_MODEL.md` : état de
+roadmap, structure architecturale, routage du codebase, invariant contractuel, rationale ADR,
+état local de phase, preuve de qualification ou simple provenance d'exécution.
 
-Après le rapport final, la décision utilisateur + ChatGPT peut nécessiter des mises à jour supplémentaires de roadmap ou d’autorité avant la tranche suivante.
+Lorsque `maintain-project-authorities` est installé, l'utiliser pour toute création ou mise à
+jour sémantique d'une autorité structurée, y compris une petite mise à jour de fin de tranche.
+Le skill charge uniquement le guide et les autorités nécessaires.
 
-Une tranche bloquée peut légitimement laisser la roadmap dans un état `BLOCKED` et introduire une nouvelle tranche corrective.
+Pour les autorités vivantes, la règle par défaut est **replace, do not accumulate** : remplacer
+l'état supersédé et retirer les formulations devenues fausses ou redondantes au lieu d'ajouter
+un historique du run. La roadmap conserve l'état/gate/prochaine étape et le routage ; le codebase
+map conserve les responsabilités, chemins et dépendances stables. Les détails de phase et les
+preuves restent dans leurs autorités spécialisées.
+
+Un run Codex peut mettre lui-même à jour la documentation lorsque la tranche l'autorise ou que
+le changement accepté impose cette synchronisation. Après le rapport final, la décision
+utilisateur + ChatGPT peut nécessiter une mise à jour supplémentaire avant la tranche suivante.
+
+Une tranche bloquée peut légitimement laisser la roadmap dans un état `BLOCKED`, mais elle ne
+doit pas y recopier son rapport détaillé.
 
 ---
 
@@ -839,7 +871,7 @@ flowchart TD
 
     AC --> AB
 
-    AA --> AD[Mettre à jour autorités / roadmap si nécessaire]
+    AA --> AD["Maintenir les autorités nécessaires<br/>via la procédure documentaire"]
     AB --> AD
 
     AD --> AE[Archiver prompt + rapport final]
@@ -855,6 +887,7 @@ flowchart TD
 - Suivre une logique spec-driven : expliciter le quoi, les contraintes et les critères d’acceptation avant de déléguer le comment.
 - Donner à chaque fait normatif un emplacement autoritaire principal unique.
 - Garder la roadmap compacte.
+- Traiter les autorités vivantes comme des projections de l'état accepté : remplacer l'état supersédé au lieu d'accumuler l'historique des runs.
 - Créer des documents de phase détaillés uniquement lorsqu’ils réduisent réellement la complexité.
 - Traiter les prompts comme des contrats d’exécution bornés, pas comme de la connaissance durable du projet.
 - Traiter un run Codex comme le chemin complet exécuteur + validation + revue/remédiation.

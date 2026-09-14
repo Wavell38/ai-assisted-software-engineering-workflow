@@ -23,13 +23,36 @@ Une information normative doit avoir **une autorité principale unique**.
 Il n'existe pas nécessairement une hiérarchie linéaire entre tous les documents :
 **l'autorité dépend de la question posée**.
 
+## Autorités vivantes, archives et provenance
+
+Les documents n'ont pas tous la même sémantique de mise à jour.
+
+Les **autorités vivantes** décrivent l'état actuellement accepté : par exemple `AGENTS.md`,
+`ARCHITECTURE.md`, `CODEBASE_MAP.md`, les contrats, `ROADMAP.md` et les plans de phase actifs
+lorsqu'ils portent un état local. Lorsqu'un fait accepté change, remplacer l'état devenu
+obsolète au lieu d'ajouter un journal chronologique. Une mise à jour doit retirer les
+formulations désormais fausses ou redondantes lorsque cela est nécessaire à la cohérence.
+
+Les **archives durables** telles que les ADR et les rapports de qualification conservent une
+décision ou une preuve dans son contexte. Elles ne doivent pas être réécrites silencieusement
+comme des autorités vivantes : une décision remplacée est supersédée selon la politique ADR, et
+une nouvelle preuve significative est enregistrée selon la politique de qualification.
+
+La **provenance d'exécution** (prompts, rapports de run, `.ai-history/**` lorsqu'il est activé)
+explique ce qui s'est passé mais n'est pas une autorité du projet par défaut.
+
+Un skill opérationnel peut imposer la procédure de maintenance de ces documents, mais il ne
+remplace jamais les autorités ni leurs guides. Lorsqu'il est installé,
+`maintain-project-authorities` est la procédure de référence pour créer, modifier sémantiquement,
+revoir ou compacter une autorité structurée.
+
 ## Autorités et responsabilités
 
 | Autorité | Question principale | Contenu attendu | À éviter |
 |---|---|---|---|
 | `AGENTS.md` | Comment travailler dans ce périmètre ? | règles permanentes d'exécution, validation, sécurité, discipline Git, conventions transversales | architecture détaillée, historique, état des phases |
 | `ARCHITECTURE.md` | Comment le système accepté est-il structuré ? | modèle architectural, frontières, ownership, direction des dépendances, flux majeurs | roadmap, journal de décision, tâches |
-| `CODEBASE_MAP.md` | Où se trouvent les responsabilités pertinentes ? | modules, chemins, ownership, dépendances majeures, liens vers contrats/ADR | inventaire exhaustif des fichiers, détails d'implémentation |
+| `CODEBASE_MAP.md` | Où se trouvent les responsabilités pertinentes ? | modules, chemins, ownership, dépendances majeures, liens vers contrats/ADR | inventaire exhaustif des fichiers, détails d'implémentation, historique de phases/tranches ou de qualification |
 | `adr/*` | Pourquoi cette décision durable a-t-elle été prise ? | contexte, décision, rationale, conséquences, alternatives significatives | contrat vivant détaillé, TODO, journal d'implémentation |
 | `contracts/*` | Qu'est-ce qui doit être vrai actuellement ? | invariants, frontières, interfaces, sémantiques, pré/postconditions, comportements d'échec | historique de décision, prose explicative répétitive |
 | `ROADMAP.md` | Où allons-nous et où en sommes-nous ? | phases, état, gates, dépendances, prochain travail, liens vers détails | architecture détaillée, contrats complets, résultats de qualification, résumé détaillé des phases |
@@ -158,6 +181,8 @@ relevant code
 
 Règles :
 
+- lorsqu'une tâche crée ou modifie sémantiquement une autorité structurée et que le skill
+  `maintain-project-authorities` est installé, l'utiliser comme procédure opérationnelle ;
 - ne pas lire toute la documentation « au cas où » ;
 - suivre les références explicites lorsque la tâche en dépend ;
 - ouvrir une autorité globale seulement si elle porte une contrainte applicable ;

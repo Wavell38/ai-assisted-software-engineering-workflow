@@ -36,6 +36,17 @@ Architecture, contrats, décisions, roadmap, règles d’exécution et preuves n
 
 Une information durable doit posséder une autorité principale identifiable plutôt que d’être recopiée dans plusieurs documents susceptibles de diverger.
 
+### Autorités vivantes et archives
+
+Les autorités vivantes (`ARCHITECTURE.md`, `CODEBASE_MAP.md`, contrats, roadmap, etc.)
+décrivent l'état accepté courant : lorsqu'un fait change, l'état supersédé est remplacé au lieu
+d'accumuler une chronologie de runs. Les ADR et rapports de qualification conservent au contraire
+des décisions et preuves durables dans leur contexte.
+
+Le skill opérationnel `maintain-project-authorities`, lorsqu'il est installé, applique cette
+discipline avec le modèle documentaire et les guides du dépôt sans devenir lui-même une source
+d'autorité.
+
 ### Chargement progressif du contexte
 
 Un agent ne doit pas lire l’ensemble du dépôt et de sa documentation « au cas où ».
@@ -77,7 +88,8 @@ Les dimensions disponibles comprennent notamment :
 - conformité au contrat et au périmètre ;
 - correctness comportementale ;
 - qualité des tests et de la validation ;
-- architecture, ownership et cohésion structurelle.
+- architecture, ownership et cohésion structurelle ;
+- placement, routage et sémantique des autorités documentaires structurées.
 
 Des analyses déterministes telles que SonarQube peuvent compléter ces reviews lorsqu’elles sont configurées, disponibles et pertinentes. Elles ne sont pas obligatoires par défaut.
 
@@ -160,6 +172,54 @@ Tous ces documents ne sont pas nécessaires sur un petit projet.
 
 Le modèle complet est décrit dans [`DOCUMENTATION_MODEL.md`](DOCUMENTATION_MODEL.md).
 
+## Convention d'intégration dans un projet
+
+Le dépôt de workflow contient davantage de matériel que ce qu'un projet doit embarquer.
+
+Dans un projet, le corpus de **politique documentaire** standard est copié sous
+`docs/engineering/` et reste volontairement minimal :
+
+```text
+docs/
+  engineering/
+    DOCUMENTATION_MODEL.md
+    adr/
+      ADR_GUIDE.md
+      ADR_TEMPLATE.md
+    architecture/
+      ARCHITECTURE_GUIDE.md
+      ARCHITECTURE_TEMPLATE.md
+      ARCHITECTURE_CHANGE_WORKFLOW.md
+    codebase-map/
+      CODEBASE_MAP_GUIDE.md
+      CODEBASE_MAP_TEMPLATE.md
+    contract/
+      CONTRACT_GUIDE.md
+      CONTRACT_TEMPLATE.md
+    qualification/
+      QUALIFICATION_GUIDE.md
+      QUALIFICATION_REPORT_TEMPLATE.md
+    roadmap/
+      ROADMAP_GUIDE.md
+      ROADMAP_TEMPLATE.md
+      PHASE_PLAN_TEMPLATE.md
+```
+
+`AGENTS.md` reste à l'emplacement normal du projet et référence cette convention.
+
+Les éléments suivants restent normalement dans le dépôt de workflow ou dans l'installation
+globale de l'environnement agentique, et **n'ont pas besoin d'être copiés dans chaque projet** :
+
+- `README.md` du workflow ;
+- `ENGINEERING_WORKFLOW.md` ;
+- le template `AGENTS_BASE_TEMPLATE.md` une fois le `AGENTS.md` projet créé ;
+- les guides de génération de prompt et de sélection de modèle ;
+- la politique et les fichiers opérationnels de review/remédiation ;
+- `maintain-project-authorities`, `review-and-remediate` et les configurations de reviewers.
+
+Cette séparation garde le contexte projet compact : l'agent dispose des autorités et politiques
+documentaires nécessaires au projet, tandis que les procédures générales restent globales.
+
 ## Contenu du dépôt
 
 ### Workflow global
@@ -169,7 +229,15 @@ Le modèle complet est décrit dans [`DOCUMENTATION_MODEL.md`](DOCUMENTATION_MOD
 
 ### Base agent
 
-- [`agents/AGENTS_BASE_TEMPLATE.md`](agents/AGENTS_BASE_TEMPLATE.md) — base de `AGENTS.md` à adapter à chaque projet.
+- [`agent/AGENTS_BASE_TEMPLATE.md`](agent/AGENTS_BASE_TEMPLATE.md) — base de `AGENTS.md` à adapter à chaque projet.
+
+### Maintenance des autorités projet
+
+- [`skills/maintain-project-authorities/SKILL.md`](skills/maintain-project-authorities/SKILL.md) — procédure opérationnelle pour créer, modifier sémantiquement, revoir ou compacter les autorités structurées en appliquant `DOCUMENTATION_MODEL.md` et le guide du document concerné.
+
+Le skill peut être installé globalement dans l'environnement agentique. Les projets n'ont pas
+besoin d'en recopier le contenu lorsqu'il est déjà disponible globalement ; il applique le
+corpus de politique documentaire du projet sous `docs/engineering/`.
 
 ### Review et remédiation
 
@@ -182,6 +250,7 @@ Les configurations de reviewers sont regroupées avec ce skill :
 - [`review/review-and-remediate/correctness-reviewer.toml`](review/review-and-remediate/correctness-reviewer.toml)
 - [`review/review-and-remediate/tests-reviewer.toml`](review/review-and-remediate/tests-reviewer.toml)
 - [`review/review-and-remediate/architecture-reviewer.toml`](review/review-and-remediate/architecture-reviewer.toml)
+- [`review/review-and-remediate/documentation-reviewer.toml`](review/review-and-remediate/documentation-reviewer.toml)
 
 Leur emplacement dans ce dépôt sert à regrouper les éléments du workflow. Leur installation effective peut nécessiter de les placer ou de les adapter selon les conventions de l’outil agentique utilisé.
 
@@ -205,8 +274,8 @@ Le codebase map est conçu comme un **routeur de contexte**, pas comme une repro
 
 ### Contrats
 
-- [`contracts/CONTRACT_GUIDE.md`](contracts/CONTRACT_GUIDE.md)
-- [`contracts/CONTRACT_TEMPLATE.md`](contracts/CONTRACT_TEMPLATE.md)
+- [`contract/CONTRACT_GUIDE.md`](contract/CONTRACT_GUIDE.md)
+- [`contract/CONTRACT_TEMPLATE.md`](contract/CONTRACT_TEMPLATE.md)
 
 ### Roadmap et phases
 
@@ -225,8 +294,8 @@ versionnement que lorsqu'une preuve durable le justifie.
 
 ### Génération des prompts et sélection du modèle
 
-- [`prompts/CODEX_PROMPT_GUIDE.md`](prompts/CODEX_PROMPT_GUIDE.md) — transformation du raisonnement et des autorités du projet en contrat d’exécution borné pour Codex.
-- [`prompts/MODEL_REASONING_SELECTION_GUIDE.md`](prompts/MODEL_REASONING_SELECTION_GUIDE.md) — sélection du modèle et du niveau de raisonnement à partir du coût cognitif réel de la tranche, avec calibration de la gamme Codex courante.
+- [`prompt/CODEX_PROMPT_GUIDE.md`](prompt/CODEX_PROMPT_GUIDE.md) — transformation du raisonnement et des autorités du projet en contrat d’exécution borné pour Codex.
+- [`prompt/MODEL_REASONING_SELECTION_GUIDE.md`](prompt/MODEL_REASONING_SELECTION_GUIDE.md) — sélection du modèle et du niveau de raisonnement à partir du coût cognitif réel de la tranche, avec calibration de la gamme Codex courante.
 
 ## Agnosticisme et implémentation actuelle
 
@@ -247,12 +316,13 @@ Il sert plutôt de base dans laquelle sélectionner les éléments nécessaires 
 1. définir les règles permanentes utiles dans `AGENTS.md` ;
 2. créer uniquement les autorités documentaires dont le projet a réellement besoin ;
 3. expliciter suffisamment la spécification, les contrats et les critères d’acceptation avant l’implémentation ;
-4. maintenir la roadmap comme routeur de l’état courant ;
+4. maintenir les autorités vivantes comme projections compactes de l’état accepté, avec `maintain-project-authorities` lorsqu’il est installé ;
 5. découper le travail en tranches cohérentes ;
 6. charger progressivement les autorités pertinentes ;
-7. valider chaque tranche avec des preuves adaptées au risque ;
-8. utiliser une review indépendante proportionnée au changement ;
-9. faire évoluer les autorités lorsque la vérité acceptée du projet change.
+7. borner dans les prompts le delta documentaire attendu lorsqu’une tranche peut modifier une autorité ;
+8. valider chaque tranche avec des preuves adaptées au risque ;
+9. utiliser une review indépendante proportionnée au changement, incluant la review documentaire pour les autorités structurées ;
+10. faire évoluer les autorités lorsque la vérité acceptée du projet change sans y recopier la provenance d’exécution.
 
 Les mécanismes inutiles doivent rester absents.
 
