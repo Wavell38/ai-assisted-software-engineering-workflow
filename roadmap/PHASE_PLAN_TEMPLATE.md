@@ -1,6 +1,7 @@
 # <Phase ID> — <Title>
 
 > Use this file only when the phase needs more detail than belongs in `ROADMAP.md`.
+> Keep `ROADMAP.md` as an index; do not mirror this document there.
 
 - **Status:** PLANNED | IN PROGRESS | BLOCKED | DONE | DEFERRED
 - **Roadmap:** [link](../ROADMAP.md)
@@ -24,4 +25,5 @@
 
 ## Qualification / gate
 
-- <phase-specific evidence or gate condition>
+- <phase-specific gate or evidence requirement>
+- <link to detailed qualification report when evidence exists; do not copy detailed results here>

@@ -27,9 +27,36 @@ Elle doit permettre de répondre rapidement à :
 - rationale complète d'une décision ;
 - contrats complets ;
 - journal chronologique de toutes les modifications ;
-- résultats détaillés de tests ou de benchmark ;
+- résultats détaillés de tests, benchmarks ou qualifications ;
+- listes détaillées de tranches lorsqu'un document de phase les possède déjà ;
 - longs comptes rendus Codex ;
 - duplication de contenu disponible dans une autorité spécialisée.
+
+## Règle de compacité
+
+La roadmap est un **index**, pas un résumé détaillé des documents qu'elle référence.
+
+Lorsqu'une phase possède un document `Details` dédié, l'entrée correspondante dans
+`ROADMAP.md` doit rester strictement synthétique. Ne pas y recopier :
+
+- le scope détaillé ;
+- la liste complète des tranches ;
+- les décisions temporaires de phase ;
+- les résultats de qualification ;
+- l'historique d'implémentation ;
+- les explications déjà disponibles dans le document de phase.
+
+Par défaut, une phase tient en :
+
+- identifiant + titre ;
+- statut ;
+- objectif en une ou deux lignes maximum ;
+- gate/résultat important en une ligne lorsque utile ;
+- dépendances majeures lorsque utiles ;
+- lien `Details` lorsque le détail existe.
+
+Si davantage d'explications sont nécessaires pour comprendre ou exécuter la phase,
+créer ou enrichir le document de phase au lieu d'allonger la roadmap.
 
 ## Statuts
 
@@ -43,23 +70,16 @@ Utiliser un vocabulaire petit et stable. Exemple :
 
 Un gate peut utiliser `OPEN`, `PASSED` ou `BLOCKED` si cette distinction est utile.
 
-## Niveau de détail
-
-Chaque entrée doit rester suffisamment courte pour que la roadmap conserve son rôle d'index.
-
-Par défaut, une phase peut tenir en :
-
-- identifiant + titre ;
-- statut ;
-- objectif en une ou deux lignes ;
-- gate/résultat important ;
-- lien vers détail si nécessaire.
-
 ## Documents de phase optionnels
 
 Ne pas créer systématiquement un fichier par phase.
 
-Créer `phases/<id>.md` lorsqu'une phase devient trop détaillée pour la roadmap ou doit conserver un contexte propre entre plusieurs tranches.
+Créer `phases/<id>.md` lorsqu'une phase :
+
+- devient trop détaillée pour la roadmap ;
+- contient plusieurs tranches dont le séquencement mérite d'être conservé ;
+- possède un contexte, des contraintes ou des critères de qualification propres ;
+- doit conserver un état local sans surcharger les autorités globales.
 
 Le document de phase peut contenir :
 
@@ -77,15 +97,20 @@ Mettre à jour la roadmap lorsqu'un changement accepté modifie réellement :
 
 - le statut d'une phase ;
 - le gate ;
-- la prochaine tranche ;
+- la prochaine tranche ou décision ;
 - le découpage futur ;
 - une dépendance de planification ;
 - l'existence d'un document de phase pertinent.
 
 Ne pas annoncer une phase comme `DONE` avant que les preuves/validations nécessaires aient été obtenues.
 
+Une mise à jour de phase ne justifie pas de recopier son rapport ou ses preuves dans
+la roadmap. Mettre à jour uniquement l'état et le routage nécessaires.
+
 ## Routage
 
-La roadmap peut pointer vers les documents nécessaires mais ne doit pas forcer leur lecture lorsqu'ils sont hors du périmètre de la tâche.
+La roadmap peut pointer vers les documents nécessaires mais ne doit pas forcer leur
+lecture lorsqu'ils sont hors du périmètre de la tâche.
 
-Une bonne entrée agit comme un routeur : elle indique **où regarder si le détail est nécessaire**, sans intégrer ce détail elle-même.
+Une bonne entrée agit comme un routeur : elle indique **où regarder si le détail est
+nécessaire**, sans intégrer ce détail elle-même.

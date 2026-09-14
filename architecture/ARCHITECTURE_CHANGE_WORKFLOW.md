@@ -2,9 +2,14 @@
 
 ## Objectif
 
-Ce workflow décrit le traitement d'un changement susceptible d'affecter une frontière, un ownership, une direction de dépendance ou une contrainte architecturale durable.
+Ce workflow décrit le traitement d'un changement susceptible d'affecter une frontière,
+un ownership, une direction de dépendance ou une contrainte architecturale durable.
 
-Il n'impose pas un ADR pour chaque changement : la première étape consiste précisément à déterminer si l'autorité existante suffit.
+Il complète le workflow d'ingénierie global. Il ne remplace ni le run Codex standard,
+ni sa validation, ni la gate de review/remédiation.
+
+Il n'impose pas un ADR pour chaque changement : la première étape consiste précisément
+à déterminer si l'autorité existante suffit.
 
 ```mermaid
 flowchart TD
@@ -20,24 +25,41 @@ flowchart TD
     F -->|No| H[Discuss and resolve the design]
 
     H --> I{Durable non-trivial<br/>decision worth preserving?}
-    I -->|Yes| J[Create / update ADR decision]
+    I -->|Yes| J[Create / supersede ADR]
     I -->|No| K[Record target state directly<br/>in the appropriate living authority]
 
-    J --> L[Update living authorities:<br/>Architecture / Contract / Codebase Map]
+    J --> L[Update affected living authorities:<br/>Architecture / Contract / Codebase Map]
     K --> L
 
     L --> G
-    G --> M[Implement + validate]
-    M --> N[Independent review]
-    N --> O{Architecture and contract<br/>respected?}
-    O -->|No| P[Remediate or reopen design]
-    P --> B
-    O -->|Yes| Q[Accept state and update roadmap]
+    G --> M[Normal Codex run:<br/>implement + validate]
+    M --> N[Review / remediation gate<br/>with architecture review when applicable]
+    N --> O{Architecture and contracts<br/>respected?}
+    O -->|No| P{Local remediation<br/>still fits accepted design?}
+    P -->|Yes| R[Targeted remediation + revalidation]
+    R --> N
+    P -->|No| B
+    O -->|Yes| Q[Accept state]
+    Q --> S[Update roadmap only if<br/>project state / plan changed]
 ```
 
 ## Règles
 
-- L'ADR conserve la décision ; l'architecture et les contrats conservent l'état vivant.
-- Une décision structurante absente des autorités ne doit pas être inventée silencieusement pendant l'implémentation.
-- Une extraction interne de fichiers ou de sous-dossiers n'est pas automatiquement un changement architectural.
-- La review doit vérifier le respect des frontières et contrats, pas uniquement la correction locale du code.
+- L'ADR conserve le **pourquoi** d'une décision durable ; l'architecture, les contrats
+  et le codebase map conservent l'état vivant correspondant.
+- Une décision structurante absente des autorités ne doit pas être inventée
+  silencieusement pendant l'implémentation.
+- Une extraction interne de fichiers ou de sous-dossiers n'est pas automatiquement un
+  changement architectural.
+- Lorsque l'état cible est déjà défini par les autorités applicables, ne pas créer un
+  nouvel ADR uniquement parce que l'implémentation est importante.
+- Lorsqu'une décision durable existante est remplacée, créer un nouvel ADR ou
+  superseder explicitement l'ancien plutôt que de réécrire silencieusement l'historique.
+- La review doit vérifier les frontières, ownerships, dépendances et contrats affectés,
+  pas uniquement la correction locale du code.
+- La gate de review/remédiation reste proportionnée au changement, mais un changement
+  matériel d'architecture justifie normalement une review architecturale.
+- Si l'implémentation ou la review montre que la décision acceptée n'est plus viable,
+  revenir au raisonnement et aux autorités plutôt que d'empiler des remédiations locales.
+- Mettre à jour `ROADMAP.md` seulement lorsque le changement modifie réellement l'état,
+  le gate, la prochaine tranche, une dépendance ou la trajectoire du projet.

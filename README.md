@@ -214,10 +214,19 @@ Le codebase map est conçu comme un **routeur de contexte**, pas comme une repro
 - [`roadmap/ROADMAP_TEMPLATE.md`](roadmap/ROADMAP_TEMPLATE.md)
 - [`roadmap/PHASE_PLAN_TEMPLATE.md`](roadmap/PHASE_PLAN_TEMPLATE.md)
 
+### Qualification
+
+- [`qualification/QUALIFICATION_GUIDE.md`](qualification/QUALIFICATION_GUIDE.md) — organisation des rapports, preuves, artefacts générés, scripts et fixtures de qualification.
+- [`qualification/QUALIFICATION_REPORT_TEMPLATE.md`](qualification/QUALIFICATION_REPORT_TEMPLATE.md) — ossature compacte d'un rapport de qualification durable.
+
+Les rapports de qualification restent dans la documentation. Les artefacts générés,
+volumineux ou reproductibles restent séparés par défaut et ne sont promus dans le
+versionnement que lorsqu'une preuve durable le justifie.
+
 ### Génération des prompts et sélection du modèle
 
 - [`prompts/CODEX_PROMPT_GUIDE.md`](prompts/CODEX_PROMPT_GUIDE.md) — transformation du raisonnement et des autorités du projet en contrat d’exécution borné pour Codex.
-- [`prompts/MODEL_REASONING_SELECTION_GUIDE.md`](prompts/MODEL_REASONING_SELECTION_GUIDE.md) — sélection du modèle et du niveau de raisonnement à partir du coût cognitif réel de la tranche plutôt que de sa taille brute.
+- [`prompts/MODEL_REASONING_SELECTION_GUIDE.md`](prompts/MODEL_REASONING_SELECTION_GUIDE.md) — sélection du modèle et du niveau de raisonnement à partir du coût cognitif réel de la tranche, avec calibration de la gamme Codex courante.
 
 ## Agnosticisme et implémentation actuelle
 

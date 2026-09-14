@@ -2,9 +2,12 @@
 
 ## Objectif
 
-Ce modèle définit **où vit chaque type d'information** et comment un agent doit charger le contexte d'un projet sans lire inutilement l'ensemble de la documentation.
+Ce modèle définit **où vit chaque type d'information** et comment un agent doit charger
+le contexte d'un projet sans lire inutilement l'ensemble de la documentation.
 
-Il ne prescrit pas un nombre fixe de fichiers. Un petit projet peut n'utiliser que `AGENTS.md`, `ARCHITECTURE.md` et `ROADMAP.md`. Les autres autorités apparaissent uniquement lorsqu'elles apportent une séparation utile.
+Il ne prescrit pas un nombre fixe de fichiers. Un petit projet peut n'utiliser que
+`AGENTS.md`, `ARCHITECTURE.md` et `ROADMAP.md`. Les autres autorités apparaissent
+uniquement lorsqu'elles apportent une séparation utile.
 
 ## Principe d'autorité unique
 
@@ -12,10 +15,13 @@ Une information normative doit avoir **une autorité principale unique**.
 
 - Les autres documents la référencent au lieu de la recopier.
 - Une reformulation ne doit pas créer une seconde définition concurrente.
-- Lorsqu'une information change, mettre à jour son autorité puis les références réellement affectées.
-- Si deux autorités applicables se contredisent, ne pas arbitrer silencieusement : rendre le conflit explicite et le résoudre avant de poursuivre si la tâche en dépend.
+- Lorsqu'une information change, mettre à jour son autorité puis les références
+  réellement affectées.
+- Si deux autorités applicables se contredisent, ne pas arbitrer silencieusement :
+  rendre le conflit explicite et le résoudre avant de poursuivre si la tâche en dépend.
 
-Il n'existe pas nécessairement une hiérarchie linéaire entre tous les documents : **l'autorité dépend de la question posée**.
+Il n'existe pas nécessairement une hiérarchie linéaire entre tous les documents :
+**l'autorité dépend de la question posée**.
 
 ## Autorités et responsabilités
 
@@ -26,9 +32,31 @@ Il n'existe pas nécessairement une hiérarchie linéaire entre tous les documen
 | `CODEBASE_MAP.md` | Où se trouvent les responsabilités pertinentes ? | modules, chemins, ownership, dépendances majeures, liens vers contrats/ADR | inventaire exhaustif des fichiers, détails d'implémentation |
 | `adr/*` | Pourquoi cette décision durable a-t-elle été prise ? | contexte, décision, rationale, conséquences, alternatives significatives | contrat vivant détaillé, TODO, journal d'implémentation |
 | `contracts/*` | Qu'est-ce qui doit être vrai actuellement ? | invariants, frontières, interfaces, sémantiques, pré/postconditions, comportements d'échec | historique de décision, prose explicative répétitive |
-| `ROADMAP.md` | Où allons-nous et où en sommes-nous ? | phases, état, gates, dépendances, prochain travail, liens vers détails | architecture détaillée, contrats complets, résultats de tests détaillés |
-| `phases/*` | Que faut-il conserver de spécifique à une phase complexe ? | scope, découpe utile, références, qualification attendue, décisions temporaires non autoritatives | duplication des autorités globales |
-| `qualification/*` | Quelles preuves ont été obtenues ? | résultats, mesures, commandes, artefacts, limites | redéfinition du contrat ou de l'architecture |
+| `ROADMAP.md` | Où allons-nous et où en sommes-nous ? | phases, état, gates, dépendances, prochain travail, liens vers détails | architecture détaillée, contrats complets, résultats de qualification, résumé détaillé des phases |
+| `phases/*` | Que faut-il conserver de spécifique à une phase complexe ? | scope, découpe utile, références, qualification attendue, décisions temporaires non autoritatives | duplication des autorités globales, preuves détaillées |
+| `qualification/*` | Quelles preuves durables ont été obtenues ? | conditions, mesures/résultats matériels, reproduction, verdict, limites, références vers les preuves | redéfinition du contrat/architecture, journaux bruts, accumulation d'artefacts générés |
+
+## Preuves et artefacts de qualification
+
+`qualification/*` désigne les **rapports durables de qualification**, pas un emplacement
+par défaut pour toutes les sorties produites pendant une expérience.
+
+Distinguer :
+
+- **rapport durable** : documentation de qualification ;
+- **artefact généré** : capture, trace, dump, vidéo, gros JSON, asset expérimental ou
+  autre sortie produite pendant la qualification ;
+- **outil reproductible** : script, test ou tooling conservé avec le code approprié ;
+- **fixture durable** : donnée ou asset de test conservé avec les tests/fixtures qui en
+  ont besoin.
+
+Les artefacts générés doivent rester hors de la documentation par défaut. Le rapport
+peut conserver leur identité, hash, emplacement ou procédure de reproduction. Ne
+versionner un artefact généré que lorsqu'il possède une valeur durable identifiable
+pour la preuve ou une review future.
+
+L'organisation précise des rapports et artefacts suit
+`qualification/QUALIFICATION_GUIDE.md` lorsqu'il existe dans le workflow utilisé.
 
 ## Relations entre documents
 
@@ -41,7 +69,8 @@ flowchart TD
     D[ADR<br/>why a durable decision exists]
     C[Contracts<br/>what must be true now]
     P[Optional phase docs<br/>phase-specific detail]
-    Q[Qualification<br/>evidence]
+    Q[Qualification reports<br/>durable evidence]
+    E[Generated evidence / artifacts<br/>not authority by default]
 
     R --> P
     R --> AR
@@ -52,13 +81,16 @@ flowchart TD
     M --> D
     P --> D
     P --> C
+    P --> Q
     C --> Q
+    Q -. references when useful .-> E
     A -. governs work on .-> R
     A -. governs work on .-> AR
     A -. governs work on .-> C
 ```
 
-Les flèches représentent des relations utiles, pas une obligation de créer tous les fichiers.
+Les flèches représentent des relations utiles, pas une obligation de créer tous les
+fichiers.
 
 ## ADR et contrat
 
@@ -67,28 +99,44 @@ ADR et contrat sont **séparés conceptuellement** :
 - l'ADR conserve la raison d'une décision durable ;
 - le contrat définit le comportement ou la frontière normative actuelle.
 
-Un petit ADR peut contenir quelques conséquences normatives sans créer de contrat séparé. Dès que le contrat devient suffisamment riche, évolutif ou directement utilisé par plusieurs tâches/tests, il doit vivre dans une autorité dédiée et l'ADR doit simplement le référencer.
+Un petit ADR peut contenir quelques conséquences normatives sans créer de contrat
+séparé. Dès que le contrat devient suffisamment riche, évolutif ou directement utilisé
+par plusieurs tâches/tests, il doit vivre dans une autorité dédiée et l'ADR doit
+simplement le référencer.
 
 ## Roadmap et documents de phase
 
-`ROADMAP.md` doit rester un index lisible de la trajectoire et de l'état courant.
+`ROADMAP.md` doit rester un **index compact** de la trajectoire et de l'état courant.
 
-Créer un document de phase seulement lorsqu'il évite de surcharger la roadmap, par exemple lorsque la phase :
+Créer un document de phase seulement lorsqu'il évite de surcharger la roadmap, par
+exemple lorsque la phase :
 
 - nécessite plusieurs tranches ;
 - possède beaucoup d'invariants ou de critères de qualification spécifiques ;
-- conserve des résultats intermédiaires utiles entre sessions ;
-- nécessite un contexte détaillé qui ne mérite pas une autorité globale.
+- nécessite un contexte ou un séquencement local utile entre sessions ;
+- nécessite un niveau de détail qui ne mérite pas une autorité globale.
+
+Lorsqu'un document de phase existe, la roadmap ne doit pas résumer son scope détaillé,
+sa liste de tranches, ses preuves ou son historique. Elle conserve uniquement
+l'objectif synthétique, l'état/gate, les dépendances utiles et le lien de routage.
 
 Le document de phase référence les autorités pertinentes ; il ne les recopie pas.
+Les preuves détaillées obtenues pendant la phase vont dans les rapports de
+qualification appropriés.
 
 ## Architecture et structure physique
 
-`CODEBASE_MAP.md` représente les **frontières de compréhension et d'ownership**, pas chaque dossier ni chaque fichier.
+`CODEBASE_MAP.md` représente les **frontières de compréhension et d'ownership**, pas
+chaque dossier ni chaque fichier.
 
-Codex peut créer ou réorganiser des sous-dossiers lorsque des fichiers frères forment une sous-responsabilité cohésive. Cette réorganisation physique n'impose pas de créer un nouveau nœud architectural.
+Codex peut créer ou réorganiser des sous-dossiers lorsque des fichiers frères forment
+une sous-responsabilité cohésive. Cette réorganisation physique n'impose pas de créer
+un nouveau nœud architectural.
 
-Un sous-ensemble mérite d'apparaître comme sous-module architectural lorsqu'il possède une responsabilité stable et nommable, des frontières ou dépendances propres, ou lorsqu'il devient utile de le router séparément pour la compréhension et les modifications.
+Un sous-ensemble mérite d'apparaître comme sous-module architectural lorsqu'il possède
+une responsabilité stable et nommable, des frontières ou dépendances propres, ou
+lorsqu'il devient utile de le router séparément pour la compréhension et les
+modifications.
 
 ## Routage du contexte
 
@@ -114,7 +162,11 @@ Règles :
 - suivre les références explicites lorsque la tâche en dépend ;
 - ouvrir une autorité globale seulement si elle porte une contrainte applicable ;
 - préférer un lien précis à une copie de contenu ;
-- si une tâche nécessite une décision absente des autorités, ne pas la déduire silencieusement lorsque cette décision est structurante.
+- charger les rapports de qualification seulement lorsque la preuve qu'ils portent est
+  pertinente pour la tâche ;
+- ne pas charger les artefacts générés uniquement parce qu'ils existent ;
+- si une tâche nécessite une décision absente des autorités, ne pas la déduire
+  silencieusement lorsque cette décision est structurante.
 
 ## Politique de taille
 
@@ -124,8 +176,12 @@ La concision est une propriété de conception :
 - supprimer les sections vides ou non pertinentes ;
 - éviter l'historique narratif dans les autorités vivantes ;
 - déplacer les preuves détaillées dans `qualification/*` ;
+- déplacer les artefacts générés hors de la documentation lorsqu'ils n'ont pas de
+  valeur durable ;
 - déplacer la rationale durable dans un ADR ;
 - déplacer les détails d'une grosse phase hors de la roadmap ;
-- ne pas créer un nouveau fichier lorsque quelques lignes dans l'autorité existante sont suffisantes et cohésives.
+- ne pas créer un nouveau fichier lorsque quelques lignes dans l'autorité existante
+  sont suffisantes et cohésives.
 
-L'objectif n'est pas de minimiser les tokens à tout prix, mais de **réduire le contexte inutile sans perdre de décision ni de précision**.
+L'objectif n'est pas de minimiser les tokens à tout prix, mais de **réduire le contexte
+inutile sans perdre de décision, de preuve ni de précision**.

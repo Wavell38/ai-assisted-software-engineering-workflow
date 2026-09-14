@@ -629,6 +629,11 @@ travail réservé à la validation stricte
 
 Lorsque la correction le permet, une preuve coûteuse sur des données immuables doit être payée une seule fois et représentée par une autorité qualifiée réutilisable, plutôt que recalculée par chaque consommateur aval.
 
+Lorsque la qualification produit des rapports ou artefacts persistants, organiser leur
+conservation selon `qualification/QUALIFICATION_GUIDE.md` : séparer le rapport durable,
+les outils reproductibles, les fixtures nécessaires et les artefacts générés plutôt que
+de déposer par défaut toutes les sorties dans la documentation.
+
 ## Discipline de remédiation
 
 Une remédiation doit rester proportionnée au blocker qu’elle traite.
