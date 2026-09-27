@@ -295,7 +295,7 @@ versionnement que lorsqu'une preuve durable le justifie.
 ### Génération des prompts et sélection du modèle
 
 - [`prompt/CODEX_PROMPT_GUIDE.md`](prompt/CODEX_PROMPT_GUIDE.md) — transformation du raisonnement et des autorités du projet en contrat d’exécution borné pour Codex.
-- [`prompt/MODEL_REASONING_SELECTION_GUIDE.md`](prompt/MODEL_REASONING_SELECTION_GUIDE.md) — sélection du modèle et du niveau de raisonnement à partir du coût cognitif réel de la tranche, avec calibration de la gamme Codex courante.
+- [`prompt/MODEL_REASONING_SELECTION_GUIDE.md`](prompt/MODEL_REASONING_SELECTION_GUIDE.md) — guide lu par ChatGPT pour recommander, avant chaque prompt, le modèle d’exécution et le niveau de raisonnement adaptés au coût cognitif réel de la tranche.
 
 ## Agnosticisme et implémentation actuelle
 

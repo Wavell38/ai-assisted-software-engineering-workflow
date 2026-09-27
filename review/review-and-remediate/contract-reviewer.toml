@@ -1,7 +1,7 @@
 name = "contract_reviewer"
 description = "Independent reviewer for compliance with the original task, scope, invariants, exclusions, authoritative references, and acceptance criteria."
 
-model = "gpt-5.6-sol"
+model = "gpt-6-sol"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 

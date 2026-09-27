@@ -231,6 +231,10 @@ La construction du prompt suit `prompts/CODEX_PROMPT_GUIDE.md`.
 
 ## Choix du modèle
 
+La sélection opérationnelle du modèle d'exécution et du niveau de raisonnement est effectuée
+par ChatGPT avant la génération du prompt et suit `prompts/MODEL_REASONING_SELECTION_GUIDE.md`.
+La calibration concrète des modèles et niveaux appartient à ce guide et n'est pas dupliquée ici.
+
 Le choix du modèle et du niveau de raisonnement doit dépendre principalement du **coût cognitif**, et non du nombre brut de fichiers ou de lignes.
 
 Les signaux pertinents incluent :

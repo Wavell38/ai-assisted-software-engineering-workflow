@@ -10,6 +10,11 @@ phases du projet. Il ne remplace ni les autorités du dépôt ni les décisions 
 pendant la discussion ; il encadre leur transformation en un contrat d'exécution
 clair pour Codex.
 
+Avant de rendre le prompt, sélectionner le modèle d'exécution et le niveau de raisonnement selon
+`MODEL_REASONING_SELECTION_GUIDE.md`. Afficher cette recommandation immédiatement avant le prompt
+selon le format défini par ce guide. La calibration des modèles et niveaux appartient uniquement
+à ce document de sélection : ne pas la dupliquer ici.
+
 ## Instructions de génération
 
 Pour chaque prompt Codex, privilégie une forte densité informationnelle sans sacrifier la précision.
