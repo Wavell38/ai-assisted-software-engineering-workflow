@@ -17,9 +17,9 @@ selon le format défini par ce guide. La calibration des modèles et niveaux app
 
 ## Instructions de génération
 
-Pour chaque prompt Codex, privilégie une forte densité informationnelle sans sacrifier la précision.
+Pour chaque prompt Codex, vise la quantité minimale d'information suffisante pour exécuter la tranche sans ambiguïté. Préfère la concision au volume, mais jamais au prix d'une décision, d'un invariant, d'une nuance ou d'une preuve nécessaire.
 
-Tiens compte des sources projet disponibles et à jour (`AGENTS.md`, architecture, roadmap, ADR/design docs, contrats et autres autorités pertinentes).
+Charge uniquement les sources projet réellement pertinentes pour la tranche (`AGENTS.md`, roadmap, architecture, ADR/design docs, contrats ou autres autorités nécessaires), en suivant le routage progressif du projet. Ne demande pas de lire des autorités simplement parce qu'elles existent.
 
 Lorsque la tranche peut créer ou modifier sémantiquement une autorité structurée, borne
 explicitement le **delta documentaire** attendu. N'utilise pas une instruction générique du
@@ -218,8 +218,8 @@ Après le run :
 
 ## Compte rendu final
 
-Demande un compte rendu final détaillé, factuel et structuré, servant de
-handoff pour une revue indépendante dans ChatGPT.
+Demande un compte rendu final suffisamment détaillé, factuel et structuré pour servir de
+handoff vers l’utilisateur et ChatGPT après la terminaison du run Codex, sans imposer une restitution exhaustive lorsque le run ne le justifie pas.
 
 Le rapport doit permettre de comprendre précisément ce qui a été fait et de
 vérifier les affirmations importantes sans devenir une répétition du prompt.
@@ -242,7 +242,9 @@ Ne masque pas un résultat incomplet derrière un résumé positif.
 Distingue clairement ce qui a été démontré, observé, supposé ou laissé pour une
 tranche ultérieure.
 
-Termine par `<READY_FOR_REVIEW ou autre statut défini pour la tranche>` si les critères sont satisfaits, sinon par `BLOCKED`.
+La review/remédiation applicable fait partie du même run Codex : ne demande pas de statut intermédiaire `READY_FOR_REVIEW`.
+
+Termine par `PASSED` si le contrat, les validations et la gate de review/remédiation applicable sont satisfaits, sinon par `BLOCKED`. Utilise un autre statut terminal uniquement lorsqu’une autorité ou la tranche le définit explicitement.
 ```
 
 ## Principes d'utilisation du modèle
