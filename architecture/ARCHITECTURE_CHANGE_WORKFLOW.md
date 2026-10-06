@@ -38,7 +38,9 @@ flowchart TD
     O -->|No| P{Local remediation<br/>still fits accepted design?}
     P -->|Yes| R[Targeted remediation + revalidation]
     R --> N
-    P -->|No| B
+    P -->|No| X[BLOCKED / final report]
+    X --> Y[User + ChatGPT:<br/>reassess the design]
+    Y --> B
     O -->|Yes| Q[Accept state]
     Q --> S[Update roadmap only if<br/>project state / plan changed]
 ```

@@ -105,7 +105,7 @@ Le workflow étend cette logique au-delà de la séquence spécification → imp
 - des autorités vivantes et séparées par responsabilité ;
 - un chargement progressif du contexte ;
 - une validation proportionnée au risque ;
-- une revue indépendante sélectionnée selon la nature du changement ;
+- une review indépendante proportionnée au changement ;
 - une boucle de remédiation ;
 - un statut terminal `BLOCKED` lorsque le contrat ne peut pas être satisfait proprement ;
 - un checkpoint anti-dérive lorsque les corrections locales commencent à remettre en cause la conception.
@@ -186,7 +186,7 @@ Elle peut être plus large qu’une tâche humaine traditionnelle.
 Une tranche doit être :
 
 - cohérente ;
-- revue indépendamment ;
+- soumise à une gate de review/remédiation proportionnée au changement ;
 - suffisamment bornée pour garder le contexte et le coût cognitif maîtrisables ;
 - assez petite pour conserver un rollback pratique ;
 - assez grande pour produire un incrément utile au niveau du projet.
@@ -231,8 +231,9 @@ La construction du prompt suit `prompts/CODEX_PROMPT_GUIDE.md`.
 
 ## Choix du modèle
 
-La sélection opérationnelle du modèle d'exécution et du niveau de raisonnement est effectuée
-par ChatGPT avant la génération du prompt et suit `prompts/MODEL_REASONING_SELECTION_GUIDE.md`.
+La sélection opérationnelle du modèle d'exécution Codex et du niveau de raisonnement est effectuée
+par ChatGPT à partir du prompt préparé avec l'utilisateur et suit `prompts/MODEL_REASONING_SELECTION_GUIDE.md`.
+La recommandation est présentée immédiatement avant le prompt transmis pour exécution.
 La calibration concrète des modèles et niveaux appartient à ce guide et n'est pas dupliquée ici.
 
 Le choix du modèle et du niveau de raisonnement doit dépendre principalement du **coût cognitif**, et non du nombre brut de fichiers ou de lignes.
@@ -274,10 +275,12 @@ Un **run Codex** est le chemin d’exécution complet d’une tranche.
 
 Il commence lorsque l’agent Codex principal reçoit le prompt de tranche.
 
-Il se termine uniquement lorsque l’agent principal produit un rapport final avec un statut terminal tel que :
+Il se termine uniquement lorsque l’agent principal produit un rapport final avec un statut terminal. Les statuts par défaut sont :
 
-- `PASSED` ou un statut accepté équivalent ;
-- `BLOCKED`.
+- `PASSED`, lorsque le contrat, les validations et la gate de review/remédiation applicable sont satisfaits ;
+- `BLOCKED`, lorsqu’un blocker ne peut pas être résolu dans le cadre de la tranche.
+
+Un autre statut de résultat n’est utilisé que si sa signification et ses conditions sont explicitement définies dans la tranche ou une autorité applicable.
 
 Le run inclut sa propre analyse, implémentation, validation, revue, remédiation et consolidation.
 
@@ -696,6 +699,8 @@ doit pas y recopier son rapport détaillé.
 
 Un commit est le point de rollback et de traçabilité par défaut après un run Codex cohérent, y compris pour de nombreux runs bloqués.
 
+L’archivage de provenance IA conserve le prompt et le rapport final sous `.ai-history/` lorsqu’il est activé dans le dépôt, par exemple via `prompts_archiver` (voir [Provenance IA](#provenance-ia)). Cette étape est omise lorsque l’archivage n’est pas activé.
+
 Les chemins terminaux typiques sont :
 
 ```text
@@ -703,7 +708,7 @@ PASSED
   ↓
 autorités / roadmap synchronisées
   ↓
-prompt + rapport final archivés
+prompt + rapport final archivés, si l’archivage est activé
   ↓
 commit
   ↓
@@ -717,7 +722,7 @@ BLOCKED
   ↓
 blocker / état roadmap enregistré lorsque nécessaire
   ↓
-prompt + rapport final archivés
+prompt + rapport final archivés, si l’archivage est activé
   ↓
 commit si le run a produit un état cohérent et utile
   ↓
@@ -734,7 +739,7 @@ Les agents recommandent des messages de commit mais ne doivent pas committer sau
 
 # Provenance IA
 
-Lorsqu’il est activé, `.ai-history/**` stocke une provenance d’exécution sélectionnée, par exemple :
+Lorsque l’archivage de provenance IA est activé dans le dépôt, `.ai-history/**` stocke une provenance d’exécution sélectionnée, par exemple :
 
 - le prompt exécuté ;
 - le rapport final Codex ;
@@ -821,10 +826,11 @@ flowchart TD
     B --> C[Phase]
     C --> D[Tranche]
 
-    D --> E[Utilisateur + ChatGPT<br/>raisonnement / découpe / choix du modèle]
+    D --> E[Utilisateur + ChatGPT<br/>raisonnement / découpe]
     E --> F[Prompt Codex<br/>contrat d’exécution borné]
+    F --> F1[Recommandation pour Codex<br/>modèle / niveau de raisonnement]
 
-    F --> G[DÉBUT RUN CODEX]
+    F1 --> G[DÉBUT RUN CODEX]
     G --> H[Analyser dépôt + autorités]
 
     H --> I{Peut continuer ?}
@@ -878,8 +884,10 @@ flowchart TD
     AA --> AD["Maintenir les autorités nécessaires<br/>via la procédure documentaire"]
     AB --> AD
 
-    AD --> AE[Archiver prompt + rapport final]
-    AE --> AF[Point commit / rollback]
+    AD --> AE{Archivage de provenance IA activé ?}
+    AE -->|Oui| AE1[Archiver prompt + rapport final<br/>sous .ai-history/]
+    AE1 --> AF[Point commit / rollback]
+    AE -->|Non| AF
     AF --> D2[Continuer avec la tranche sélectionnée]
 ```
 
@@ -907,5 +915,5 @@ flowchart TD
 - Valider les architectures sensibles à l’échelle avec une preuve end-to-end représentative assez tôt pour invalider une mauvaise direction avant la construction de nombreuses couches dépendantes.
 - Ne pas confondre preuve de qualification, travail runtime, travail par worker, travail par candidat et validation stricte.
 - Ne pas poursuivre une direction uniquement pour amortir le travail déjà investi.
-- Archiver la provenance sans la transformer en autorité.
+- Lorsque l’archivage de provenance IA est activé, conserver les prompts et rapports sans les transformer en autorités.
 - Committer fréquemment les états cohérents et utiles, y compris les états bloqués lorsqu’ils méritent d’être conservés.

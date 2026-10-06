@@ -20,7 +20,7 @@ Le workflow va au-delà d’une simple séquence spécification → implémentat
 - un chargement progressif du contexte ;
 - des contrats et invariants explicites ;
 - une validation proportionnée au risque ;
-- une review indépendante adaptée au changement ;
+- une review indépendante proportionnée au changement ;
 - une boucle de remédiation ;
 - une qualification à échelle représentative lorsque nécessaire ;
 - un statut `BLOCKED` pour éviter d’inventer silencieusement une décision manquante ;
@@ -129,7 +129,7 @@ flowchart TD
     E --> F[Validation et preuves]
 
     F --> G[Classifier le changement]
-    G --> H[Review indépendante adaptée<br/>si nécessaire]
+    G --> H[Review indépendante proportionnée<br/>si nécessaire]
     G --> I[Analyse déterministe<br/>si applicable]
 
     H --> J[Consolidation]
@@ -229,11 +229,11 @@ documentaires nécessaires au projet, tandis que les procédures générales res
 
 ### Base agent
 
-- [`agent/AGENTS_BASE_TEMPLATE.md`](agent/AGENTS_BASE_TEMPLATE.md) — base de `AGENTS.md` à adapter à chaque projet.
+- [`agents/AGENTS_BASE_TEMPLATE.md`](agents/AGENTS_BASE_TEMPLATE.md) — base de `AGENTS.md` à adapter à chaque projet.
 
 ### Maintenance des autorités projet
 
-- [`skills/maintain-project-authorities/SKILL.md`](skills/maintain-project-authorities/SKILL.md) — procédure opérationnelle pour créer, modifier sémantiquement, revoir ou compacter les autorités structurées en appliquant `DOCUMENTATION_MODEL.md` et le guide du document concerné.
+- [`review/maintain-project-authorities/SKILL.md`](review/maintain-project-authorities/SKILL.md) — procédure opérationnelle pour créer, modifier sémantiquement, revoir ou compacter les autorités structurées en appliquant `DOCUMENTATION_MODEL.md` et le guide du document concerné.
 
 Le skill peut être installé globalement dans l'environnement agentique. Les projets n'ont pas
 besoin d'en recopier le contenu lorsqu'il est déjà disponible globalement ; il applique le
@@ -274,8 +274,8 @@ Le codebase map est conçu comme un **routeur de contexte**, pas comme une repro
 
 ### Contrats
 
-- [`contract/CONTRACT_GUIDE.md`](contract/CONTRACT_GUIDE.md)
-- [`contract/CONTRACT_TEMPLATE.md`](contract/CONTRACT_TEMPLATE.md)
+- [`contracts/CONTRACT_GUIDE.md`](contracts/CONTRACT_GUIDE.md)
+- [`contracts/CONTRACT_TEMPLATE.md`](contracts/CONTRACT_TEMPLATE.md)
 
 ### Roadmap et phases
 
@@ -294,8 +294,8 @@ versionnement que lorsqu'une preuve durable le justifie.
 
 ### Génération des prompts et sélection du modèle
 
-- [`prompt/CODEX_PROMPT_GUIDE.md`](prompt/CODEX_PROMPT_GUIDE.md) — transformation du raisonnement et des autorités du projet en contrat d’exécution borné pour Codex.
-- [`prompt/MODEL_REASONING_SELECTION_GUIDE.md`](prompt/MODEL_REASONING_SELECTION_GUIDE.md) — guide lu par ChatGPT pour recommander, avant chaque prompt, le modèle d’exécution et le niveau de raisonnement adaptés au coût cognitif réel de la tranche.
+- [`prompts/CODEX_PROMPT_GUIDE.md`](prompts/CODEX_PROMPT_GUIDE.md) — transformation du raisonnement et des autorités du projet en contrat d’exécution borné pour Codex.
+- [`prompts/MODEL_REASONING_SELECTION_GUIDE.md`](prompts/MODEL_REASONING_SELECTION_GUIDE.md) — guide lu par ChatGPT pour recommander, à partir du prompt préparé, le modèle Codex et le niveau de raisonnement adaptés au coût cognitif du travail demandé.
 
 ## Agnosticisme et implémentation actuelle
 
@@ -331,6 +331,8 @@ Les mécanismes inutiles doivent rester absents.
 ### [`prompts_archiver`](https://github.com/Wavell38/prompts_archiver)
 
 Outil local utilisé en complément du workflow pour conserver une **provenance versionnée des runs Codex**.
+
+Son utilisation dépend de l’activation de l’archivage de provenance IA dans le dépôt.
 
 Pour chaque tour finalisé dans un dépôt activé, il peut archiver sous `.ai-history/` :
 

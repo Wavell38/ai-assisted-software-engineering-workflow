@@ -2,22 +2,28 @@
 
 ## Rôle
 
-Ce document guide **ChatGPT lorsqu'il prépare une tranche et génère son prompt d'exécution**.
+Ce document guide **ChatGPT pour recommander la configuration d'exécution Codex à partir du prompt préparé avec l'utilisateur**.
+
+Le prompt est construit selon `CODEX_PROMPT_GUIDE.md`, à partir du cadrage, des autorités du projet
+et, lorsqu'ils sont disponibles, des résultats des runs précédents. La grille évalue le travail
+que ce prompt et ses sources référencées demandent à Codex.
 
 Il sert à recommander, avant le run :
 
-- le **modèle d'exécution** adapté au coût cognitif de la tranche ;
+- le **modèle d'exécution Codex** adapté au coût cognitif de la tranche décrite par le prompt ;
 - le **niveau d'effort de raisonnement** associé ;
 - la nécessité éventuelle de mieux spécifier ou découper la tranche avant exécution.
 
-La sélection est effectuée par ChatGPT **avant de rendre le prompt**. Elle accompagne le prompt afin
-que la configuration appropriée puisse être choisie dès le début du run ; elle ne fait pas partie
-du contrat d'exécution lui-même.
+ChatGPT effectue la sélection **à partir du prompt préparé**, puis affiche la recommandation
+immédiatement avant le prompt rendu à l'utilisateur. Elle sert à configurer le futur run Codex
+et reste distincte du contrat d'exécution. Le modèle utilisé pour la conversation dans ChatGPT
+est hors du périmètre de cette grille.
 
 Il s'agit d'un **guide de processus**, pas d'une autorité du projet.
 
-Le choix doit être fondé sur le **coût cognitif réel de la tranche**, et non sur le nombre brut de
-fichiers, de lignes de code ou la simple importance apparente de la tâche.
+Le choix doit être fondé sur le **coût cognitif réel du travail demandé par le prompt**, et non sur
+la longueur du prompt, le nombre brut de fichiers ou de lignes de code, ou la simple importance
+apparente de la tâche.
 
 Les modèles, niveaux disponibles et coûts évoluent. La calibration ci-dessous reflète la famille
 GPT-6 utilisée dans le workflow en septembre 2026. Vérifier l'offre courante lorsqu'une décision
@@ -69,7 +75,7 @@ utile et conserver ses invariants réellement couplés.
 
 ## Évaluation du coût cognitif
 
-Prendre notamment en compte :
+À partir du prompt préparé et des autorités pertinentes qu'il référence, prendre notamment en compte :
 
 - largeur du contexte nécessaire ;
 - nombre de responsabilités ou modules concernés ;
@@ -121,22 +127,22 @@ solution ou même le cadre du problème**, ou lorsque subsiste un doute matérie
 
 Signaux typiques :
 
-- architecture réellement indécise entre plusieurs solutions raisonnables ;
+- étude de conception comparant plusieurs architectures raisonnables ;
 - problème nouveau ou fortement ambigu dont la bonne décomposition n'est pas encore connue ;
 - reconstruction d'une intention ou d'un système à partir d'informations partielles,
   contradictoires ou distribuées ;
 - diagnostic systémique où plusieurs couches peuvent produire le même symptôme ;
 - plusieurs hypothèses globales restent plausibles après l'analyse locale ;
-- redesign après accumulation de blockers ou de remédiations suggérant que la conception courante
+- étude de redesign après accumulation de blockers ou de remédiations suggérant que la conception courante
   peut être mauvaise ;
-- arbitrage transversal entre architecture, contrats, performance, validation et exploitation ;
+- analyse des compromis entre architecture, contrats, performance, validation et exploitation ;
 - audit particulièrement large ou exigeant où de nombreuses conclusions localement plausibles
   peuvent être globalement incompatibles ;
-- décision structurante difficile à vérifier a posteriori et coûteuse à inverser ;
+- investigation préalable à une décision structurante difficile à vérifier a posteriori et coûteuse à inverser ;
 - travail irréductible dont l'échec silencieux aurait un coût élevé et pour lequel Sol présente
   encore une incertitude matérielle malgré un effort élevé.
 
-Astra ne doit pas devenir le modèle par défaut de toute architecture, review ou tâche importante.
+Astra ne doit pas devenir le modèle par défaut de toute tranche architecturale ou tâche importante.
 
 Avant de l'utiliser, vérifier :
 
@@ -152,7 +158,7 @@ Dans ce workflow, **Astra high** est le point de départ normal lorsqu'une escal
 vers Astra est justifiée.
 
 Utiliser **Astra xhigh** lorsque le problème est à la fois fortement ambigu et profondément couplé,
-par exemple pour un diagnostic systémique difficile, un redesign majeur ou une synthèse
+par exemple pour un diagnostic systémique difficile, une étude de redesign majeur ou une synthèse
 transversale avec plusieurs hypothèses concurrentes.
 
 Réserver **Astra max** aux problèmes exceptionnels et réellement irréductibles où la meilleure
@@ -170,21 +176,15 @@ la plupart des décisions sont déjà établies.
 
 L'utiliser notamment pour :
 
-- transformer des décisions déjà prises en prompt clair ;
-- reformater ou densifier un prompt sans en modifier le contrat ;
-- identifier les autorités directement applicables lorsque le routage est évident ;
-- extraire les éléments matériels d'un rapport bien structuré ;
-- vérifier une petite cohérence locale sans choix de conception ;
-- préparer une tranche simple dont objectif, périmètre, invariants et validation sont déjà connus ;
-- préparer un prompt de tranche bien spécifiée ;
-- consolider quelques contraintes ou autorités sans conflit important ;
-- choisir une découpe simple entre responsabilités déjà comprises ;
-- interpréter un rapport dont les conséquences sont relativement directes ;
-- traiter une intégration ou un changement non trivial mais conceptuellement établi ;
-- décider entre quelques variantes locales dont les trade-offs sont connus.
+- implémenter un changement local dont le comportement et la frontière sont déjà spécifiés ;
+- corriger un bug local dont la cause et le comportement attendu sont établis ;
+- ajouter ou adapter des tests à des critères d'acceptation précis ;
+- effectuer un refactor local préservant des contrats connus ;
+- appliquer un delta documentaire explicite à une autorité identifiée ;
+- intégrer une API existante dont le contrat et les points de raccordement sont connus ;
+- exécuter une qualification bornée dont le protocole, les seuils et les preuves attendues sont définis.
 
-Medium est le plancher volontaire du workflow. Ne pas descendre sous ce niveau pour économiser du
-coût lorsque la tâche appartient à cette couche de cadrage.
+Medium est le plancher volontaire pour les runs Codex couverts par cette calibration.
 
 ## High
 
@@ -198,13 +198,13 @@ arbitrages interviennent.
 Signaux typiques :
 
 - plusieurs contrats ou invariants interagissent ;
-- découpe de phase ou de tranche non évidente ;
-- interprétation substantielle d'un rapport de qualification ou de review ;
-- choix de conception dans une architecture globalement orientée ;
+- modification de plusieurs responsabilités dont les frontières sont déjà définies ;
+- qualification ou intégration nécessitant plusieurs preuves cohérentes ;
+- choix d'implémentation dans une architecture établie ;
 - frontière critique ou risque significatif d'erreur silencieuse ;
 - analyse de concurrence, ordering, persistance ou état ;
 - diagnostic non trivial mais dont le cadre reste suffisamment connu ;
-- préparation d'un prompt complexe avec plusieurs critères de preuve et de blocage.
+- implémentation avec plusieurs critères de preuve et de blocage.
 
 ## Extra High / xhigh
 
@@ -213,13 +213,13 @@ raisonnement importante.
 
 Signaux typiques :
 
-- architecture complexe mais suffisamment orientée ;
+- implémentation complexe dans une architecture définie ;
 - audit transversal fortement couplé ;
 - diagnostic difficile avec plusieurs causes locales plausibles ;
-- checkpoint anti-dérive ;
-- raisonnement de scalabilité ou de performance susceptible d'affecter l'architecture ;
+- investigation de blockers répétés pour préparer une réévaluation utilisateur + ChatGPT ;
+- qualification de scalabilité ou de performance susceptible de remettre en cause l'architecture ;
 - nombreux invariants ou frontières dont les interactions doivent être vérifiées ensemble ;
-- review critique d'un résultat susceptible de remettre en cause la prochaine tranche ;
+- analyse critique de preuves susceptibles d'invalider la conception acceptée ;
 - besoin important de contradiction, d'exploration d'alternatives ou de vérification globale.
 
 ## Max
@@ -232,7 +232,7 @@ Exemples :
 - interaction très dense de nombreux invariants connus ;
 - diagnostic profond dont l'espace d'hypothèses est borné ;
 - comparaison détaillée de plusieurs variantes d'une architecture déjà orientée ;
-- vérification finale d'une décision structurante avant génération d'une tranche coûteuse ;
+- qualification exigeante d'un invariant critique ou de propriétés fortement couplées ;
 - problème où une erreur silencieuse aurait des conséquences importantes et où une profondeur
   maximale est justifiée.
 
@@ -244,23 +244,26 @@ plutôt que de considérer Sol max comme une escalade automatique suffisante.
 
 # Combinaisons usuelles
 
-| Type de travail ChatGPT | Modèle | Reasoning |
+| Travail demandé à Codex par le prompt | Modèle Codex | Reasoning |
 |---|---|---|
-| Prompt quasi mécanique / décisions déjà établies | Sol | Medium |
-| Cadrage quotidien / préparation normale d'un prompt | Sol | High |
-| Découpe ou analyse substantielle | Sol | High |
-| Plusieurs invariants / frontière critique / rapport complexe | Sol | High |
-| Architecture complexe mais orientée | Sol | xhigh |
-| Diagnostic transversal / checkpoint anti-dérive | Sol | xhigh |
+| Implémentation locale / contrat et cible déjà établis | Sol | Medium |
+| Implémentation comportementale normale | Sol | High |
+| Refactor cohésif / plusieurs invariants en interaction | Sol | High |
+| Intégration entre modules / frontière critique / qualification complexe | Sol | High |
+| Implémentation complexe dans une architecture définie | Sol | xhigh |
+| Diagnostic transversal / investigation de blockers répétés | Sol | xhigh |
 | Problème extrêmement profond mais bien cadré | Sol | max |
 | Audit particulièrement large ou exigeant | Astra | High ou xhigh |
-| Architecture réellement ouverte / problème nouveau très ambigu | Astra | High |
-| Diagnostic systémique / redesign majeur / forte ambiguïté globale | Astra | xhigh |
+| Étude de conception exploratoire / problème nouveau très ambigu | Astra | High |
+| Diagnostic systémique / étude de redesign / forte ambiguïté globale | Astra | xhigh |
 | Doute matériel sur la capacité de Sol max / problème exceptionnel et irréductible | Astra | xhigh ou max |
 
 Cette table est une heuristique. Le coût cognitif réel, l'ambiguïté et la qualité du découpage
 restent prioritaires. **Sol high est le choix par défaut**, Sol medium le plancher, et Astra reste
 une escalade exceptionnelle.
+
+Les tranches d'investigation ou d'étude de conception restent soumises aux règles de décision
+et de blocage du [workflow d'ingénierie](../ENGINEERING_WORKFLOW.md#run-codex).
 
 # Sol max ou Astra ?
 
@@ -312,9 +315,9 @@ Les reviewers indépendants sont gouvernés par leurs configurations propres et 
 review/remédiation. Ne pas dériver automatiquement leur modèle ou leur reasoning de cette grille,
 et ne pas les modifier simplement parce que la calibration de l'exécuteur évolue.
 
-# Décision avant génération du prompt
+# Décision à partir du prompt préparé
 
-Avant chaque prompt, ChatGPT doit pouvoir répondre à :
+À partir du prompt préparé avec l'utilisateur, ChatGPT doit pouvoir répondre à :
 
 1. Quelle est la responsabilité unique de la tranche ?
 2. Quelles autorités et quels invariants interagissent ?
@@ -329,7 +332,8 @@ Avant chaque prompt, ChatGPT doit pouvoir répondre à :
 
 ## Règle de sélection
 
-La sélection est faite **avant** de rendre le prompt.
+La sélection est faite **à partir du prompt préparé, avant sa restitution**. Si cette évaluation
+conduit à clarifier ou découper la tranche, réévaluer la configuration sur le prompt révisé.
 
 - **Sol medium** est le niveau minimal utilisé par ce workflow.
 - **Sol high** est le choix standard par défaut.
@@ -346,7 +350,7 @@ pas la configuration la moins coûteuse à tout prix.
 ## Sortie de sélection
 
 Lorsqu'il rend un prompt d'exécution, ChatGPT affiche immédiatement **avant le prompt** la
-configuration recommandée sous une forme compacte :
+configuration recommandée pour Codex sous une forme compacte :
 
 ```text
 Model: GPT-6 Sol

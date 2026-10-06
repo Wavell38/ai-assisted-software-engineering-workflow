@@ -67,7 +67,7 @@ Le contexte fourni dépend de leur responsabilité :
   dépôt. Le reviewer route lui-même son contexte via `maintain-project-authorities` lorsqu'il est
   installé ; sinon il lit `docs/engineering/DOCUMENTATION_MODEL.md`, les guides applicables copiés
   dans le projet et uniquement les autorités nécessaires. Il ne suppose pas que les fichiers
-  `prompt/`, `review/` ou `agent/` du dépôt de workflow existent dans le projet. Il vérifie toutes
+  `prompts/`, `review/` ou `agents/` du dépôt de workflow existent dans le projet. Il vérifie toutes
   les autorités concernées dans une seule passe.
 
 Les reviewers peuvent inspecter d’autres fichiers lorsqu’ils en ont besoin. Les références fournies sont des points d’entrée, pas des frontières d’exploration.

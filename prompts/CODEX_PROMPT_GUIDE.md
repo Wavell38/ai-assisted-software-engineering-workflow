@@ -10,8 +10,9 @@ phases du projet. Il ne remplace ni les autorités du dépôt ni les décisions 
 pendant la discussion ; il encadre leur transformation en un contrat d'exécution
 clair pour Codex.
 
-Avant de rendre le prompt, sélectionner le modèle d'exécution et le niveau de raisonnement selon
-`MODEL_REASONING_SELECTION_GUIDE.md`. Afficher cette recommandation immédiatement avant le prompt
+Une fois le prompt construit, sélectionner le modèle d'exécution Codex et le niveau de raisonnement
+selon le coût cognitif du travail demandé, en suivant `MODEL_REASONING_SELECTION_GUIDE.md`.
+Afficher cette recommandation immédiatement avant le prompt
 selon le format défini par ce guide. La calibration des modèles et niveaux appartient uniquement
 à ce document de sélection : ne pas la dupliquer ici.
 
@@ -242,9 +243,9 @@ Ne masque pas un résultat incomplet derrière un résumé positif.
 Distingue clairement ce qui a été démontré, observé, supposé ou laissé pour une
 tranche ultérieure.
 
-La review/remédiation applicable fait partie du même run Codex : ne demande pas de statut intermédiaire `READY_FOR_REVIEW`.
+La review/remédiation applicable fait partie du même run Codex et précède son rapport terminal. L’utilisateur et ChatGPT analysent ensuite ce rapport pour décider de la suite.
 
-Termine par `PASSED` si le contrat, les validations et la gate de review/remédiation applicable sont satisfaits, sinon par `BLOCKED`. Utilise un autre statut terminal uniquement lorsqu’une autorité ou la tranche le définit explicitement.
+Termine par `PASSED` si le contrat, les validations et la gate de review/remédiation applicable sont satisfaits, sinon par `BLOCKED`. Utilise un autre statut de résultat uniquement lorsqu’une autorité ou la tranche en définit explicitement le sens et les conditions.
 ```
 
 ## Principes d'utilisation du modèle
@@ -276,6 +277,6 @@ Les listes de tests doivent démontrer le contrat, pas le redéfinir.
 
 Les conditions `BLOCKED` doivent couvrir les véritables impossibilités ou violations du contrat, pas répéter mécaniquement chaque exigence du prompt.
 
-Le compte rendu final doit demander les éléments nécessaires à la revue de la tranche sans imposer une restitution exhaustive de tout ce que Codex vient de faire.
+Le compte rendu final doit permettre à l’utilisateur et à ChatGPT d’analyser le résultat et de décider de la suite, avec un niveau de détail proportionné à la tranche.
 
 La longueur finale du prompt doit être déterminée par la quantité réelle d'information nouvelle nécessaire à la tranche, jamais par une cible de tokens.
