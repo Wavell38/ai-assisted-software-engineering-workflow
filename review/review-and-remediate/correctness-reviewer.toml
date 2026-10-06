@@ -16,10 +16,8 @@ when applicable.
 Avoid style-only findings and speculative redesigns.
 Do not modify files.
 
-Return one structured review result using the verdict, confidence, severity, and
-finding schema supplied by the review workflow.
+Return one structured review result using the schema supplied by the review workflow,
+including coverage, supporting evidence, limitations, verdict, confidence, and findings.
 Return only concrete findings supported by code, contracts, or reproducible reasoning.
-Do not invent or calculate a numeric quality score; the parent derives calibration
-metrics only after findings have been independently verified and dispositioned.
 State explicitly when no material finding exists.
 """

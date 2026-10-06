@@ -361,93 +361,41 @@ Il n’existe pas de checkpoint normal d’approbation utilisateur / ChatGPT ent
 
 # Boucle de revue interne
 
-La boucle de revue fait partie du même run Codex.
+La revue/remédiation fait partie du même run Codex. L’agent principal la coordonne après la
+validation initiale et avant le rapport terminal.
 
-L’agent Codex principal reste responsable de sa coordination.
-
-La politique générale est décrite dans `review/REVIEW_AND_REMEDIATION_WORKFLOW.md`. Lorsque le skill opérationnel `review-and-remediate` est installé, il constitue la procédure d’exécution de référence pour la sélection des reviewers, la consolidation, la remédiation et le rapport d’acceptation.
-
-Le passage par la **gate de review/remédiation** est une étape du workflow pour les tâches modifiant le dépôt, mais cela ne signifie pas qu’un nombre fixe de reviewers ou qu’une analyse déterministe doivent être lancés à chaque tranche.
+La [vue d’ensemble de la revue](review/REVIEW_AND_REMEDIATION_WORKFLOW.md) situe cette boucle.
+Le [skill `review-and-remediate`](review/review-and-remediate/SKILL.md), utilisable même sans
+installation, définit les règles opérationnelles. Les sections suivantes décrivent seulement
+leur place dans le run.
 
 ---
 
-## 4. Sélection et fan-out de revue
+## 4. Sélection de la revue
 
-Lorsque l’implémentation et la validation initiale sont prêtes, l’agent principal commence par classifier le changement.
-
-Il sélectionne ensuite **le plus petit ensemble de reviewers indépendants suffisant** pour couvrir les risques matériels de la tranche.
-
-Selon la nature du changement, cela peut conduire à :
-
-- aucun reviewer pour un run sans diff effectif, purement analytique ou limité à une provenance non fonctionnelle ;
-- aucune revue de code pour une modification documentaire ordinaire, sauf lorsqu’elle modifie une autorité, un contrat, une décision architecturale ou une procédure exécutable ;
-- une revue du contrat et de la correction pour un changement local ;
-- une revue supplémentaire des tests pour une implémentation comportementale normale ;
-- une revue architecturale lorsqu’un changement touche matériellement ownership, dépendances, frontières, abstractions partagées, cohésion ou décomposition.
-
-Les reviewers sélectionnés travaillent en contexte frais, indépendamment de l’exécuteur et les uns des autres. Leurs rôles sont spécialisés afin d’éviter plusieurs revues génériques redondantes.
-
-Une analyse déterministe telle que SonarQube peut être lancée en parallèle lorsqu’elle est **configurée, exploitable et pertinente pour le changement**. Elle reste optionnelle dans le workflow global : son absence ou son indisponibilité ne doit pas être transformée en blocker sauf si une autorité spécifique au projet en fait explicitement une exigence.
-
-Lorsqu’aucun reviewer n’est requis, la gate peut être satisfaite sans fan-out LLM. Lorsqu’aucune analyse déterministe n’est applicable, la consolidation s’effectue uniquement sur les sorties réellement requises.
-
-Les critères de sélection détaillés, les configurations de reviewers et leur schéma de sortie appartiennent à la politique opérationnelle de revue, pas à ce workflow global.
+L’agent principal isole les changements de la tranche et applique la
+[sélection selon le risque](review/review-and-remediate/SKILL.md#2-select-review-according-to-risk).
+Elle peut conduire à aucun reviewer, un seul, ou plusieurs rôles spécialisés. La même
+procédure définit quand une analyse déterministe est pertinente ou requise.
 
 ---
 
 ## 5. Consolidation
 
-L’agent principal attend uniquement les sorties demandées pour la tranche, puis consolide lorsqu’applicable :
-
-- les constats des reviewers sélectionnés ;
-- les constats d’analyses déterministes effectivement exécutées ;
-- les sévérités et informations bloquantes ;
-- les recouvrements ou contradictions entre constats.
-
-Chaque constat doit être vérifié contre le dépôt avant d’être accepté, rejeté, différé ou remonté pour décision.
-
-L’agent principal détermine si les constats sont :
-
-- déjà satisfaits / invalides ;
-- directement remédiables dans la tranche actuelle ;
-- suffisamment sérieux pour nécessiter une nouvelle passe de revue après remédiation ;
-- bloqués par un compromis matériel ou une décision de conception.
-
-S’il n’existe aucun constat matériel et que toutes les validations et conditions de la tranche sont satisfaites, la gate de revue peut être acceptée immédiatement.
+L’agent principal rassemble les preuves de validation et les sorties effectivement demandées.
+Il vérifie les constats et leurs limites selon le
+[traitement des constats](review/review-and-remediate/SKILL.md#6-disposition-every-finding),
+puis évalue si les conditions d’acceptation sont satisfaites.
 
 ---
 
 ## 6. Boucle de remédiation ciblée
 
-Si les constats sont remédiables sans changer le contrat prévu de la tranche, l’agent principal les corrige directement.
+Les corrections compatibles avec la tranche et les autorités sont traitées dans le même run,
+avec les validations et revues ciblées prévues par la procédure. Un constat ordinaire ne
+redémarre pas toute la tranche.
 
-Il :
-
-1. relance les validations affectées ;
-2. relance ou demande une vérification ciblée uniquement aux reviewers concernés lorsque nécessaire ;
-3. relance l’analyse déterministe uniquement si elle avait été utilisée et si le changement remédié peut modifier son signal ;
-4. reconsolide les nouveaux résultats.
-
-La boucle reste locale :
-
-```text
-review / analyse applicable
-  ↓
-consolidation
-  ↓
-constats remédiables
-  ↓
-remédiation ciblée
-  ↓
-validation pertinente
-  ↓
-re-review / nouvelle analyse uniquement si nécessaire
-  ↓
-consolidation
-  ↺
-```
-
-Le workflow ne redémarre **pas** la tranche depuis le début après chaque constat de revue ordinaire.
+La décision terminale intervient lorsque cette boucle est terminée ou rencontre un blocker.
 
 ---
 
@@ -502,8 +450,7 @@ Il doit normalement identifier :
 - les fichiers et frontières affectés ;
 - les décisions d’implémentation importantes ;
 - les commandes et résultats de validation ;
-- le résultat des revues et analyses déterministes effectivement exécutées ;
-- les remédiations effectuées ;
+- le bilan de revue selon la [procédure de clôture](review/review-and-remediate/SKILL.md#7-close-the-gate-and-report) ;
 - les mesures ou expériences pertinentes ;
 - les limites ou incertitudes restantes ;
 - les détails du blocker lorsqu’il est bloqué ;
@@ -845,7 +792,7 @@ flowchart TD
     M -->|Non| X
     M -->|Oui| N[Classifier le changement]
 
-    N --> N1[Sélectionner les reviewers<br/>strictement nécessaires]
+    N --> N1[Sélection selon le risque<br/>aucun, un ou plusieurs reviewers]
     N --> N2[Analyse déterministe<br/>si applicable et disponible]
 
     N1 --> O[Review / gate proportionnée]
@@ -890,30 +837,3 @@ flowchart TD
     AE -->|Non| AF
     AF --> D2[Continuer avec la tranche sélectionnée]
 ```
-
----
-
-# Principes directeurs
-
-- Garder le raisonnement flexible et les autorités du dépôt explicites.
-- Suivre une logique spec-driven : expliciter le quoi, les contraintes et les critères d’acceptation avant de déléguer le comment.
-- Donner à chaque fait normatif un emplacement autoritaire principal unique.
-- Garder la roadmap compacte.
-- Traiter les autorités vivantes comme des projections de l'état accepté : remplacer l'état supersédé au lieu d'accumuler l'historique des runs.
-- Créer des documents de phase détaillés uniquement lorsqu’ils réduisent réellement la complexité.
-- Traiter les prompts comme des contrats d’exécution bornés, pas comme de la connaissance durable du projet.
-- Traiter un run Codex comme le chemin complet exécuteur + validation + revue/remédiation.
-- Autoriser `BLOCKED` comme issue terminale normale de tout blocker réel.
-- Ne pas insérer de checkpoints utilisateur inutiles à l’intérieur d’un run sain.
-- Garder la boucle reviewer/remédiation locale ; ne pas redémarrer toute la tranche pour des constats ordinaires.
-- Sélectionner le plus petit ensemble de reviewers spécialisés et indépendants suffisant pour les risques matériels de la tranche.
-- Garder l’analyse déterministe séparée de la revue LLM et ne l’exécuter que lorsqu’elle est applicable ou exigée par le projet.
-- Choisir les modèles selon le coût cognitif, pas selon des métriques superficielles de taille.
-- Préférer la décomposition lorsqu’elle améliore la fiabilité, la revue ou le coût.
-- Revenir à l’utilisateur + ChatGPT uniquement pour les rapports terminaux, décisions de conception, blockers ou sélection du travail suivant.
-- Avant de corriger des blockers répétés, demander si le blocker devrait exister dans l’architecture cible.
-- Valider les architectures sensibles à l’échelle avec une preuve end-to-end représentative assez tôt pour invalider une mauvaise direction avant la construction de nombreuses couches dépendantes.
-- Ne pas confondre preuve de qualification, travail runtime, travail par worker, travail par candidat et validation stricte.
-- Ne pas poursuivre une direction uniquement pour amortir le travail déjà investi.
-- Lorsque l’archivage de provenance IA est activé, conserver les prompts et rapports sans les transformer en autorités.
-- Committer fréquemment les états cohérents et utiles, y compris les états bloqués lorsqu’ils méritent d’être conservés.

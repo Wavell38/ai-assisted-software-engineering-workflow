@@ -79,19 +79,12 @@ Selon le projet et le risque, la validation peut inclure tests, analyse statique
 
 ### Review indépendante et proportionnée
 
-L’implémentation et la review sont séparées.
+La [procédure de revue](review/review-and-remediate/SKILL.md) sélectionne aucun, un ou
+plusieurs reviewers selon le risque et les preuves disponibles. Une petite modification
+locale peut être acceptée sans reviewer lorsque ses critères le permettent.
 
-L’agent principal sélectionne le plus petit ensemble de reviewers spécialisés nécessaire selon la nature du changement. Une tranche peut donc nécessiter plusieurs reviewers, un seul, ou aucun reviewer de code lorsqu’une review n’apporte pas de valeur.
-
-Les dimensions disponibles comprennent notamment :
-
-- conformité au contrat et au périmètre ;
-- correctness comportementale ;
-- qualité des tests et de la validation ;
-- architecture, ownership et cohésion structurelle ;
-- placement, routage et sémantique des autorités documentaires structurées.
-
-Des analyses déterministes telles que SonarQube peuvent compléter ces reviews lorsqu’elles sont configurées, disponibles et pertinentes. Elles ne sont pas obligatoires par défaut.
+Les reviews indépendantes apportent des constats étayés, un périmètre examiné et des limites
+explicites. La procédure définit aussi le recours éventuel aux analyses déterministes.
 
 ### `BLOCKED` est un résultat valide
 
@@ -182,6 +175,7 @@ Dans un projet, le corpus de **politique documentaire** standard est copié sous
 ```text
 docs/
   engineering/
+    VERSION
     DOCUMENTATION_MODEL.md
     adr/
       ADR_GUIDE.md
@@ -220,6 +214,35 @@ globale de l'environnement agentique, et **n'ont pas besoin d'être copiés dans
 Cette séparation garde le contexte projet compact : l'agent dispose des autorités et politiques
 documentaires nécessaires au projet, tandis que les procédures générales restent globales.
 
+## Version du workflow
+
+Le fichier [`VERSION`](VERSION) contient la version du corpus source sur une seule ligne.
+Il est le seul emplacement où cette valeur est maintenue dans ce dépôt ; il ne désigne pas
+la version du produit qui utilise le workflow.
+
+La version est mise à jour manuellement avec l’évolution cohérente qu’elle identifie :
+
+- **majeure** (`X.0.0`) : changement incompatible nécessitant d’adapter les usages existants ;
+- **mineure** (`x.Y.0`) : évolution compatible des règles, capacités ou templates ;
+- **corrective** (`x.y.Z`) : correction ou clarification sans changement du fonctionnement attendu.
+
+La première version explicite initialise cette convention. Un run d’un projet consommateur
+ne change pas la version du workflow.
+
+Pour conserver la provenance lors d’une copie ou d’une installation :
+
+- copier `VERSION` vers `docs/engineering/VERSION` avec le sous-ensemble documentaire utilisé,
+  depuis la même révision du dépôt ;
+- lors de l’installation d’un skill, copier également `VERSION` dans son dossier, à côté de
+  `SKILL.md`, avec les fichiers du skill et ses profils associés lorsqu’il en possède ;
+- lors d’une mise à jour, synchroniser le marqueur avec les fichiers réellement intégrés.
+  Une modification de ce dépôt ne met pas à jour les copies existantes automatiquement.
+
+Le marqueur identifie la base importée. Conserver les adaptations locales explicitement dans
+les règles du projet ou de l’installation ; une copie partielle ou adaptée n’est pas supposée
+identique au corpus complet. Un identifiant de commit peut préciser la provenance si utile.
+Sans marqueur, la version est inconnue et ne doit pas être déduite du contenu.
+
 ## Contenu du dépôt
 
 ### Workflow global
@@ -241,8 +264,8 @@ corpus de politique documentaire du projet sous `docs/engineering/`.
 
 ### Review et remédiation
 
-- [`review/REVIEW_AND_REMEDIATION_WORKFLOW.md`](review/REVIEW_AND_REMEDIATION_WORKFLOW.md) — politique générale de review indépendante et proportionnée.
-- [`review/review-and-remediate/SKILL.md`](review/review-and-remediate/SKILL.md) — implémentation opérationnelle actuelle de la gate de review/remédiation.
+- [`review/REVIEW_AND_REMEDIATION_WORKFLOW.md`](review/REVIEW_AND_REMEDIATION_WORKFLOW.md) — vue d’ensemble de la revue et routage vers la procédure.
+- [`review/review-and-remediate/SKILL.md`](review/review-and-remediate/SKILL.md) — source de référence pour la sélection des reviewers, les preuves attendues et la remédiation.
 
 Les configurations de reviewers sont regroupées avec ce skill :
 

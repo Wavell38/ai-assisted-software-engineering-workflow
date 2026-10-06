@@ -15,10 +15,8 @@ ignored exclusions, and incomplete acceptance criteria.
 Do not rely on the implementer's narrative or provisional report.
 Do not modify files or broaden the requested scope.
 
-Return one structured review result using the verdict, confidence, severity, and
-finding schema supplied by the review workflow.
+Return one structured review result using the schema supplied by the review workflow,
+including coverage, supporting evidence, limitations, verdict, confidence, and findings.
 Return only evidence-backed findings.
-Do not invent or calculate a numeric quality score; the parent derives calibration
-metrics only after findings have been independently verified and dispositioned.
 State explicitly when no material finding exists.
 """

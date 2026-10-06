@@ -1,166 +1,53 @@
-# Workflow de review et remédiation
+# Workflow de revue et remédiation
 
-## Objectif
+## Place dans le run
 
-Après une tranche d’implémentation et sa validation initiale, appliquer une gate de review proportionnée au changement, consolider les constats puis remédier jusqu’à obtention d’un résultat acceptable ou jusqu’à nécessité d’un arbitrage.
+La revue/remédiation intervient après l’implémentation et la validation initiale, avant le
+rapport terminal. Le [workflow global](../ENGINEERING_WORKFLOW.md) définit le cycle du run,
+ses statuts et le passage de relais à l’utilisateur + ChatGPT.
 
-Ce document décrit la politique générale. Lorsque le skill `review-and-remediate` est installé, son `SKILL.md` constitue la procédure opérationnelle détaillée.
+Le [skill `review-and-remediate`](review-and-remediate/SKILL.md) est la source de référence
+des règles de revue. Il peut être suivi directement même sans installation. Ce document
+en donne une vue d’ensemble ; il ne maintient pas une seconde définition des règles.
 
-Le passage par cette gate ne signifie pas qu’un nombre fixe de reviewers ou qu’une analyse déterministe doivent être exécutés à chaque tranche.
+## Lire la procédure selon le besoin
 
-## Principe de sélection
-
-L’agent principal commence par isoler le diff attribuable à la tâche courante puis classe le changement.
-
-Il sélectionne **le plus petit ensemble de reviewers suffisant** :
-
-| Type de changement | Review par défaut |
+| Question | Source de référence |
 | --- | --- |
-| Pas de diff effectif, analyse seule, provenance `.ai-history/**` seule | Aucun reviewer |
-| Documentation ordinaire non autoritative | Aucun reviewer par défaut |
-| Modification sémantique d'une ou plusieurs autorités structurées | Ajouter documentation |
-| Implémentation/refactor petit et local | Contrat + correctness |
-| Implémentation comportementale normale | Contrat + correctness + tests |
-| Changement matériel de structure, ownership, dépendances, frontières ou abstraction partagée | Ajouter architecture |
-| Travail transversal, architectural, contrat public, schéma, migration, persistance, concurrence, sécurité, identité ou canonicalisation | Ajouter architecture |
+| Quel diff et quelles exigences examiner ? | [Établir la cible](review-and-remediate/SKILL.md#1-establish-the-review-target) |
+| Aucun, un ou plusieurs reviewers ? Une analyse déterministe ? | [Sélection selon le risque](review-and-remediate/SKILL.md#2-select-review-according-to-risk) |
+| Quel contexte donner à chaque rôle ? | [Routage du contexte](review-and-remediate/SKILL.md#3-route-context-deliberately) |
+| Quelle configuration utiliser ? | [Configuration des reviewers](review-and-remediate/SKILL.md#4-use-stable-reviewer-configurations) |
+| Quelles preuves, quels constats et quelles limites restituer ? | [Résultat structuré](review-and-remediate/SKILL.md#5-require-structured-review-results) |
+| Que corriger, différer ou soumettre à décision ? | [Traitement des constats](review-and-remediate/SKILL.md#6-disposition-every-finding) |
+| Comment accepter et rendre compte ? | [Clôture de la gate](review-and-remediate/SKILL.md#7-close-the-gate-and-report) |
 
-La taille brute d’un fichier ou d’un diff n’est pas un critère suffisant pour sélectionner une review architecturale.
+La sélection peut aboutir à aucun reviewer pour une petite modification locale dont le
+risque est délimité et les preuves suffisantes, à un reviewer pour un risque précis, ou à
+plusieurs rôles couvrant des risques distincts. Les critères et exceptions restent définis
+dans la procédure liée ci-dessus.
 
-Lorsqu'un diff modifie sémantiquement une autorité structurée, ajouter
-`documentation_reviewer` même si le même diff contient aussi du code. Un seul reviewer
-documentaire couvre l'ensemble des autorités documentaires concernées par la tranche ; ne pas
-lancer un reviewer par fichier. Si le changement documentaire modifie également une décision
-architecturale, un contrat ou une procédure exécutable, ajouter les reviewers spécialisés
-correspondants.
-
-Les reviewers sélectionnés sont lancés en parallèle lorsqu’il y en a plusieurs.
-
-## Analyse déterministe
-
-Une analyse déterministe telle que SonarQube peut compléter la review lorsqu’elle est :
-
-- configurée pour le projet ;
-- exploitable sur l’état courant du dépôt ;
-- pertinente pour le type de changement.
-
-Elle n’est pas obligatoire par défaut.
-
-Si elle est indisponible ou échoue pour une raison externe au changement, le workflow continue normalement et cette indisponibilité est rapportée, sauf si une autorité propre au projet en fait explicitement une gate obligatoire.
-
-Ne jamais utiliser de résultat SonarQube périmé comme preuve du worktree courant.
-
-Les constats déterministes restent séparés des contextes des reviewers LLM et sont consolidés par l’agent principal.
-
-## Routage du contexte
-
-Les reviewers travaillent dans des contextes indépendants de l’exécuteur et, autant que possible, indépendants les uns des autres.
-
-Ils ne reçoivent pas le raisonnement interne de l’implémentation ni un rapport final provisoire.
-
-Le contexte fourni dépend de leur responsabilité :
-
-- **contract reviewer** : prompt d’implémentation complet, diff cible, autorités et critères d’acceptation ;
-- **correctness reviewer** : objectif comportemental, invariants, diff cible et accès au code nécessaire pour tracer le comportement ;
-- **tests reviewer** : comportement attendu, changements production/tests, critères d’acceptation et validations pertinentes ;
-- **architecture reviewer** : diff, autorités architecturales, frontières, ownership, abstractions partagées et unités sources nécessaires ;
-- **documentation reviewer** : diff documentaire complet de la tranche, `AGENTS.md` et accès au
-  dépôt. Le reviewer route lui-même son contexte via `maintain-project-authorities` lorsqu'il est
-  installé ; sinon il lit `docs/engineering/DOCUMENTATION_MODEL.md`, les guides applicables copiés
-  dans le projet et uniquement les autorités nécessaires. Il ne suppose pas que les fichiers
-  `prompts/`, `review/` ou `agents/` du dépôt de workflow existent dans le projet. Il vérifie toutes
-  les autorités concernées dans une seule passe.
-
-Les reviewers peuvent inspecter d’autres fichiers lorsqu’ils en ont besoin. Les références fournies sont des points d’entrée, pas des frontières d’exploration.
-
-## Workflow
+## Vue d’ensemble
 
 ```mermaid
 flowchart TD
-    A[Implémentation + validation initiale] --> B[Établir le diff de la tâche]
-    B --> C[Classifier le changement]
-
-    C --> D[Sélectionner le plus petit<br/>ensemble de reviewers suffisant]
-    C --> E[Analyse déterministe<br/>si applicable et disponible]
-
-    D --> F[Reviews indépendantes<br/>si reviewers sélectionnés]
-    E --> G[Attendre uniquement les<br/>sorties effectivement requises]
-    F --> G
-
-    G --> H[Consolidation et vérification<br/>des constats]
-
-    H --> I{Constat matériel ?}
-
-    I -->|Non| J[Gate acceptée]
-    I -->|Oui| K{Remédiable sans<br/>nouvelle décision ?}
-
-    K -->|Oui| L[Remédiation ciblée]
-    L --> M[Revalidation affectée]
-    M --> N[Re-review / analyse ciblée<br/>si nécessaire]
-    N --> H
-
-    K -->|Non| O[BLOCKED / décision utilisateur]
+    A[Implémentation + validation initiale] --> B[Isoler le diff et évaluer les risques]
+    B --> C{Review indépendante requise ?}
+    C -->|Non| F[Vérifier les preuves disponibles]
+    C -->|Oui| D[Un ou plusieurs reviewers spécialisés]
+    D --> F
+    B --> E[Analyse déterministe si pertinente<br/>ou exigée par le projet]
+    E --> F
+    F --> G[Consolider les preuves, constats et limites]
+    G --> H{Conditions d’acceptation satisfaites ?}
+    H -->|Oui| I[Gate acceptée]
+    H -->|Non| J{Remédiable dans la tranche ?}
+    J -->|Oui| K[Correction + validation affectée]
+    K --> L[Revue ciblée si nécessaire<br/>réévaluer la sélection si le risque change]
+    L --> F
+    J -->|Non| M[BLOCKED / rapport terminal]
 ```
 
-## Consolidation
-
-L’agent principal vérifie chaque constat contre le dépôt avant d’agir.
-
-Chaque constat est classé comme :
-
-- accepté et corrigé ;
-- accepté et différé ;
-- rejeté avec preuve factuelle ;
-- décision humaine requise.
-
-Les constats issus d’une analyse déterministe suivent la même discipline de vérification, mais restent distincts des métriques de calibration des reviewers LLM.
-
-Un constat ne doit jamais être supprimé silencieusement.
-
-## Remédiation
-
-Un constat accepté est corrigé dans la tranche courante par défaut lorsque la correction :
-
-- reste compatible avec les autorités du dépôt ;
-- ne nécessite pas de nouvelle décision produit ou architecturale ;
-- ne transforme pas la tâche en refonte non bornée.
-
-Après correction :
-
-1. relancer les validations affectées ;
-2. demander une vérification ciblée aux reviewers concernés lorsque nécessaire ;
-3. relancer l’analyse déterministe uniquement si elle avait été utilisée et que le changement peut modifier son résultat ;
-4. reconsolider.
-
-Une correction critique ou de sévérité élevée doit recevoir une vérification indépendante ciblée.
-
-Le workflow ne redémarre pas toute la tranche après chaque constat ordinaire.
-
-## Arbitrage
-
-Un trade-off matériel, une modification de contrat non autorisée, une décision architecturale absente, des autorités contradictoires ou une conception rendue non viable ne doivent pas être arbitrés silencieusement par l’exécuteur.
-
-Dans ce cas, la gate peut se terminer en `BLOCKED` et le problème remonte à la couche de raisonnement utilisateur + IA.
-
-## Acceptation
-
-Le succès d’une tranche n’est pas défini uniquement par des tests verts.
-
-Selon le changement, l’acceptation prend en compte :
-
-- le contrat de la tranche ;
-- les invariants applicables ;
-- les validations requises ;
-- les frontières architecturales ;
-- la discipline d'autorité/routage documentaire lorsqu'une autorité structurée a changé ;
-- les reviewers effectivement sélectionnés ;
-- les analyses déterministes effectivement exécutées ;
-- les remédiations et vérifications finales ;
-- les risques ou décisions restant ouverts.
-
-Lorsqu’aucun reviewer n’était requis, le rapport doit l’indiquer explicitement plutôt que de simuler une review inutile.
-
-## Principe directeur
-
-La review doit être **indépendante mais proportionnée**.
-
-L’objectif n’est pas de maximiser le nombre d’agents ou de checks, mais d’obtenir le niveau de contradiction et de preuve réellement nécessaire pour accepter la tranche avec confiance.
+La décision repose sur le contrat de la tranche, les preuves obtenues et le traitement des
+constats. L’absence de reviewer est une issue explicite de la sélection ; les validations
+requises restent applicables.

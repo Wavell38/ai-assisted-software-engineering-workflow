@@ -1,12 +1,14 @@
 ---
 name: review-and-remediate
-description: Final review and remediation gate for repository-changing tasks. Use after implementation and initial validation, before the final commit and final report. Isolate the current-task diff, select parallel reviewers, remediate safe findings, and enrich the final acceptance report. Skip review for no-diff, analysis-only, or .ai-history-only work; route semantic structured-documentation changes to the documentation reviewer.
+description: Proportionate review and remediation gate for repository-changing tasks. Use after implementation and initial validation, before any authorized commit and the final report. Isolate the current-task diff, select zero, one, or several reviewers according to material risk, and remediate verified findings. Small, bounded, low-risk changes can proceed without a reviewer; semantic structured-documentation changes require documentation review.
 ---
 
 # Review and remediate
 
-Apply this workflow after implementation and initial validation, before the final
-commit and final report.
+Apply this workflow after implementation and initial validation, before any authorized
+commit and the final report. This is the reference procedure for reviewer selection,
+context routing, review results, and remediation. It can also be read directly without
+installing the skill.
 
 ## 1. Establish the review target
 
@@ -27,55 +29,77 @@ stop the review and report the boundary problem.
 Ignore `.ai-history/**` when determining implementation correctness.
 An `.ai-history`-only diff does not require review.
 
-## 2. Classify the change
+## 2. Select review according to risk
 
-Use the smallest sufficient reviewer set:
+Use zero, one, or several reviewers according to the actual change and the evidence
+already available. Honor any independent review or validation explicitly required by
+project authority. A small diff or successful tests alone do not establish low risk.
 
-- No effective diff, analysis-only work, or `.ai-history`-only changes:
-  launch no reviewer.
-- Documentation-only changes:
-  - ordinary non-authoritative prose: launch no reviewer by default;
-  - semantic changes to one or more structured project authorities: launch
-    `documentation_reviewer`;
-  - when the same change also alters an authoritative contract, architectural decision, or
-    executable procedure, add the applicable existing reviewer(s).
-- Small and local implementation or refactor:
-  launch `contract_reviewer` and `correctness_reviewer`.
-- Normal behavioral implementation:
-  launch `contract_reviewer`, `correctness_reviewer`, and `tests_reviewer`.
-- Also launch `architecture_reviewer` when the change:
-  - creates substantial new hand-written production code, a new production module,
-    or a new package;
-  - introduces or materially expands several functions, classes, or components with
-    potentially distinct responsibilities;
-  - touches or materially enlarges an unusually large, tightly coupled, or
-    multi-responsibility hand-written source unit;
-  - materially changes ownership, dependency direction, module boundaries, or shared
-    abstractions;
-  - reveals a plausible decomposition boundary that warrants independent assessment.
-- Transversal, architectural, public-contract, schema, migration, persistence,
-  concurrency, security-sensitive, identity, or canonicalization work:
-  also launch `architecture_reviewer`.
-- Whenever the current-task diff semantically changes one or more structured project
-  authorities, also launch exactly one `documentation_reviewer` for the complete documentation
-  scope, even when source code changed in the same task. Do not launch one documentation
-  reviewer per file.
+### When no reviewer is needed
 
-Do not select `architecture_reviewer` solely because generated files, vendored code,
-declarative data, snapshots, or large fixtures have a high line count.
+Launch no reviewer for no effective diff, analysis-only work, `.ai-history`-only
+changes, or ordinary prose/mechanical documentation corrections that change no
+normative meaning.
 
-Launch the selected reviewers in parallel.
+A small local implementation or refactor can also proceed without a reviewer when
+all of these conditions hold:
 
-If the target includes hand-written implementation changes and a SonarQube project
-scanner is configured and usable, run one full-project analysis of the same current
-worktree in parallel. Use the configured scanner for project analysis and the available
-SonarQube integration/MCP to retrieve its quality gate and material findings when
-possible. SonarQube is optional: if unavailable or unsuccessful, continue normally and
-report it as unavailable. Never use stale SonarQube results. Keep its findings out of
-the independent reviewer contexts and give them only to the parent for consolidation.
+- the change covers one bounded responsibility and is straightforward to inspect;
+- the expected behavior and acceptance criteria are already clear;
+- it does not materially change architectural boundaries, shared ownership, public
+  contracts, schemas, migrations, persistence, concurrency, security, identity,
+  canonicalization, or safety-critical behavior;
+- it does not semantically change a structured authority or an executable workflow rule;
+- relevant checks or direct inspection establish the affected behavior and important
+  edge cases; required validations have passed and no material uncertainty remains;
+- no applicable authority requires independent review.
 
-Wait for all requested reviewer results and any successfully completed SonarQube
-analysis before parent consolidation.
+Record the reason and the supporting checks briefly in the final report. This is an
+acceptance decision by the parent, not a reviewer `PASS`. Reassess the selection if the
+scope grows, unexpected failures appear, or a material uncertainty emerges.
+
+### When independent review is needed
+
+For other changes, identify the material risks and choose the smallest set of
+specialized reviewers that covers them. A single reviewer is sufficient when one
+review dimension covers the risk; do not automatically pair contract and correctness
+or add a tests reviewer for every behavioral change.
+
+| Review dimension | Select when |
+| --- | --- |
+| `contract_reviewer` | Scope, exclusions, acceptance criteria, or normative/executable rules need independent verification. |
+| `correctness_reviewer` | Changed behavior, state transitions, failure handling, or interactions carry material regression risk. |
+| `tests_reviewer` | Coverage, assertions, fixtures, or the validity of the available proof need independent assessment. |
+| `architecture_reviewer` | The change materially affects responsibility, ownership, dependencies, shared abstractions, or sensitive boundaries, as detailed below. |
+| `documentation_reviewer` | The diff semantically changes one or more structured authorities, including workflow policy. |
+
+Architecture review is required for substantial new production responsibilities,
+material changes to module/package boundaries or shared abstractions, and changes
+to public-contract, schema, migration, persistence, concurrency, security, identity,
+or canonicalization semantics. Also select it when the change materially expands
+mixed responsibilities or exposes a plausible decomposition problem in a touched
+source unit. Merely touching a file in one of these areas, or its line count alone,
+does not trigger architecture review.
+
+Use exactly one documentation reviewer for the complete structured-documentation
+scope, including mixed code/documentation tasks. Add another role only when the change
+also presents a distinct contract, behavioral, validation, or architectural risk.
+
+Give each selected reviewer a concrete review dimension. Launch multiple reviewers
+in parallel, in fresh contexts independent of the implementation and of each other.
+
+### Deterministic analysis
+
+Use SonarQube project analysis when it is configured, usable, and relevant to the
+changed implementation, or when project authority requires it. A minor change does
+not by itself require a full-project analysis. When selected, analyze the current
+worktree with the configured scanner and retrieve its quality gate and material
+findings through the available integration. Never use stale results as current proof.
+
+An unavailable or unsuccessful optional analysis does not block acceptance; report
+the limitation. A project-required analysis remains required. Keep analysis findings
+out of independent reviewer contexts and give them only to the parent for consolidation.
+Wait for all requested reviews and analysis attempts to finish before consolidation.
 
 ## 3. Route context deliberately
 
@@ -122,23 +146,17 @@ The supplied references are starting points, not exploration boundaries.
 
 ## 4. Use stable reviewer configurations
 
-Treat the reviewers as an independent quality gate and as a calibration reference
-for implementation quality.
-
 Use the model and reasoning effort defined by each reviewer agent configuration.
 Do not inherit, mirror, or downgrade the implementation agent's model or reasoning
 effort merely because the implementation used a cheaper or lower-effort
 configuration.
 
-Keep reviewer model and reasoning configurations stable across comparable runs while
-executor configurations are being evaluated.
-
 Override a reviewer configuration only when explicitly requested or when the
 configured reviewer cannot complete the review adequately. Report any such override
-in the final acceptance report because it breaks direct calibration comparability.
+and its reason in the final acceptance report.
 
-Do not reduce review depth merely because implementation or initial validation
-completed successfully.
+Keep each selected review focused on its assigned risk, with enough context to
+establish the facts.
 
 ## 5. Require structured review results
 
@@ -147,6 +165,8 @@ Each reviewer must return one structured review result containing:
 - reviewer;
 - verdict;
 - review confidence;
+- coverage and evidence: what was inspected and which checks or reasoning support the result;
+- limitations: unverified behavior, unavailable checks, or uncertainty that affects confidence;
 - findings.
 
 Use exactly these verdicts:
@@ -183,11 +203,9 @@ Use these severity meanings consistently:
 Reject style-only observations unless they conceal a correctness, maintainability,
 or contract risk.
 
-A reviewer must explicitly report `no material findings` when appropriate.
-
-Reviewers must not invent or calculate an overall numeric quality score.
-Calibration metrics are calculated by the parent only after findings have been
-verified and dispositioned.
+A reviewer must explicitly report `no material findings` when appropriate, together
+with the coverage and limitations of that conclusion. State when no material
+limitation was identified; never imply that unperformed checks passed.
 
 ## 6. Disposition every finding
 
@@ -205,7 +223,7 @@ Classify each finding as exactly one of:
 An accepted finding is an implementation defect or gap, not an optional suggestion.
 Correct it in the current task by default.
 
-A finding against code created or materially changed by the current task is within
+A finding against code or documentation created or materially changed by the current task is within
 remediation scope when the correction is behavior-preserving, compatible with
 repository authority, and requires no new product or architectural decision. The
 original prompt need not have explicitly requested the quality correction.
@@ -232,81 +250,29 @@ Run the required validations after remediation. If SonarQube was used and analyz
 code changed, rerun it when available so the final signal reflects the remediated
 worktree; an unavailable optional rerun remains non-blocking and must be reported.
 
-## 7. Produce review calibration metrics
-
-After the parent has verified and dispositioned the initial reviewer findings, record
-the pre-remediation quality signal before corrections obscure the quality of the
-original implementation.
-
-Only accepted reviewer findings contribute to numeric scores. SonarQube findings are
-tracked separately and never alter reviewer calibration scores:
-
-- accepted and corrected findings count in the initial score;
-- accepted and deferred findings count in the initial score;
-- rejected findings do not count;
-- findings requiring a human decision do not count numerically and must be reported
-  separately.
-
-For each selected reviewer, calculate:
-
-`score = max(0, 100 - 100*critical - 25*high - 8*medium - 2*low)`
-
-where each term is the number of accepted findings at that severity.
-
-A reviewer with no accepted material finding receives `100`.
-
-Also report the accepted finding counts by severity so the score never replaces the
-underlying evidence.
-
-Calculate the overall calibration score as the arithmetic mean of the selected
-reviewer scores, rounded to the nearest whole number.
-
-If no reviewer was required, report the review score as `N/A`.
-
-The initial scorecard measures the quality of the implementation before remediation.
-It is the primary signal for comparing executor model and reasoning configurations.
-
-After remediation, validation, and any required targeted re-review, calculate the
-same scorecard from residual accepted findings and report it as the final scorecard.
-
-If a targeted re-review discovers a new accepted finding attributable to the
-original implementation rather than to remediation, include it in the initial
-scorecard as well.
-
-Treat these scores only as internal comparative signals. They are not probabilities
-or absolute measures of software quality. Compare them primarily across similar task
-classes and reviewer sets.
-
-## 8. Produce one final acceptance report
+## 7. Close the gate and report
 
 Do not issue a provisional final report before review completes.
 
-The final report must remain detailed and task-specific. It is not a rigid form
-and must contain enough information for a new session to understand the accepted
-state and prepare the next task.
+The parent accepts the result only when the task contract, applicable invariants,
+required validations, and required reviews are satisfied. Verify every finding's
+disposition and resolve material proof gaps or pending human decisions before
+acceptance. Neither an absence of findings nor successful tests alone closes the gate.
+Use the terminal status defined by the applicable workflow or task; reviewer verdicts
+do not replace that status.
 
-It must cover, when applicable:
+Add the review outcome to the task's final report, with detail proportional to the
+change:
 
-- final status and delivered behavior;
-- important implementation details and decisions;
-- affected modules, contracts, and authority documents;
-- meaningful deviations from the original plan;
-- initial and final validation results;
-- SonarQube status and, when available, its material results and dispositions;
-- executor model and reasoning effort, when available;
-- reviewers selected and why;
-- reviewer model and reasoning configuration;
-- each reviewer's verdict and review confidence;
-- the initial review scorecard, including accepted finding counts by severity;
-- the overall initial calibration score;
-- every finding and its final disposition;
-- corrections made because of review;
-- rejected findings with evidence;
-- human decisions required;
-- the final review scorecard after remediation;
-- the overall final calibration score;
-- residual risks and deferrals;
-- the recommended next step.
+- reviewers selected and the risk each covered, or why none was needed;
+- verdicts, confidence, supporting evidence, and material limitations;
+- every finding's final disposition, with the correction, reason for deferral,
+  factual rejection evidence, or decision needed;
+- validations after remediation and independent verification when required;
+- material analysis results and limitations, if analysis was requested;
+- unresolved risks and their consequences for acceptance.
 
-Avoid raw exploration logs, repeated chronologies, and duplicate descriptions.
-Prefer decisions, evidence, final behavior, and remaining consequences.
+For a small change without findings, a brief rationale and the relevant validation
+results are sufficient. Expand when findings, uncertainty, or a blocker need a
+decision. Report configuration overrides when applicable; avoid raw logs, empty
+sections, repeated chronologies, and duplicate descriptions.

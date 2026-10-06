@@ -16,10 +16,8 @@ validation commands that do not cover the changed behavior.
 Do not require tests mechanically when they add no meaningful confidence.
 Do not modify files.
 
-Return one structured review result using the verdict, confidence, severity, and
-finding schema supplied by the review workflow.
+Return one structured review result using the schema supplied by the review workflow,
+including coverage, supporting evidence, limitations, verdict, confidence, and findings.
 Return only actionable, evidence-backed findings.
-Do not invent or calculate a numeric quality score; the parent derives calibration
-metrics only after findings have been independently verified and dispositioned.
 State explicitly when no material finding exists.
 """
