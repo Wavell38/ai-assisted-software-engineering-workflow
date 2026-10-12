@@ -20,8 +20,8 @@ Le workflow explique comment le travail passe de la discussion à un run Codex b
 
 Lorsque le skill global `maintain-project-authorities` est installé, il constitue la procédure
 opérationnelle de référence pour créer, modifier sémantiquement, revoir ou compacter les
-autorités structurées. Il applique `DOCUMENTATION_MODEL.md` et les guides du dépôt ; il ne les
-remplace pas comme source d'autorité.
+autorités structurées. Il applique `DOCUMENTATION_MODEL.md` et les guides embarqués dans son
+installation globale ; les faits et adaptations propres au projet restent dans ses autorités.
 
 ---
 

@@ -135,11 +135,13 @@ Give `documentation_reviewer`:
 - applicable `AGENTS.md`;
 - repository access sufficient to inspect the changed authorities and their referenced sources.
 
-The reviewer owns its own documentation-policy routing. When `maintain-project-authorities` is
-installed, it must use that skill; otherwise it reads `docs/engineering/DOCUMENTATION_MODEL.md`
-and the applicable project-copied type-specific guides directly. It must not assume the project
-contains the workflow repository's prompt/review/agent-template material. Do not preload every
-guide or launch one documentation reviewer per file.
+The reviewer owns its own documentation-policy routing. Use the companion
+[maintain-project-authorities skill](../maintain-project-authorities/SKILL.md), installed
+alongside this skill, and load only its relevant bundled references. The same relative
+link works in the workflow source repository. If the companion is unavailable, report
+the missing dependency instead of assuming a consumer copy under `docs/engineering/`.
+Honor explicit project policy for historical copies without silently mixing corpora.
+Do not preload every guide or launch one documentation reviewer per file.
 
 All reviewers may inspect additional repository files when necessary.
 The supplied references are starting points, not exploration boundaries.
@@ -147,6 +149,10 @@ The supplied references are starting points, not exploration boundaries.
 ## 4. Use stable reviewer configurations
 
 Use the model and reasoning effort defined by each reviewer agent configuration.
+The bundled profiles are [contract](contract-reviewer.toml),
+[correctness](correctness-reviewer.toml), [tests](tests-reviewer.toml),
+[architecture](architecture-reviewer.toml), and [documentation](documentation-reviewer.toml).
+The installer also places these profiles in the active Codex home's `agents/` directory.
 Do not inherit, mirror, or downgrade the implementation agent's model or reasoning
 effort merely because the implementation used a cheaper or lower-effort
 configuration.

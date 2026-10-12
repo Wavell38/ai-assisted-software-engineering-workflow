@@ -1,12 +1,13 @@
 ---
 name: maintain-project-authorities
-description: Operational procedure for creating, semantically updating, reviewing, or compacting structured project authorities in repositories using the standard `docs/engineering/` project documentation-policy layout. Use whenever a task may change ROADMAP.md, CODEBASE_MAP.md, ARCHITECTURE.md, phase plans, contracts, ADRs, qualification reports, or equivalent governed authorities, including small semantic updates.
+description: Create, semantically update, verify, or compact structured project authorities using bundled documentary guidance. Use for ROADMAP.md, CODEBASE_MAP.md, ARCHITECTURE.md, phase plans, contracts, ADRs, qualification reports, and equivalent authorities, including small semantic updates.
 ---
 
 # Maintain project authorities
 
-Use this skill to apply the project's documentation model consistently. This skill is a
-procedure, not a source of project truth: project authorities, `docs/engineering/DOCUMENTATION_MODEL.md`, and the applicable type-specific guides remain authoritative.
+Use this skill to apply the bundled documentation model consistently. This skill supplies
+the procedure and documentary policy; accepted project facts remain in the project's
+authorities. Explicit project rules govern project-specific adaptations.
 
 ## 1. Establish the documentation scope
 
@@ -18,30 +19,33 @@ procedure, not a source of project truth: project authorities, `docs/engineering
 
 ## 2. Load only the policy needed
 
-The standard project documentation-policy root is `docs/engineering/`.
+Resolve the following paths relative to this installed skill, never to the consumer
+repository or current working directory. Load progressively:
 
-A project is only expected to copy the documentation-policy subset it needs there: the
-documentation model plus the ADR, architecture, codebase-map, contract, qualification, and
-roadmap guidance/templates. Do not expect the workflow repository's prompt, review,
-agent-template, README, or global-skill material to exist in the project copy.
-
-Load context progressively from `docs/engineering/`:
-
-1. `docs/engineering/DOCUMENTATION_MODEL.md`;
+1. [documentation model](references/DOCUMENTATION_MODEL.md);
 2. the guide for each target document type;
 3. the corresponding template only when creating a document, materially restructuring it,
    or when the guide explicitly requires it;
 4. only the project authorities, code, phase state, or evidence needed to establish the facts
    being written.
 
-Standard guide locations are:
+| Target | Guide | Template (only when needed) |
+| --- | --- | --- |
+| Architecture | [guide](references/architecture/ARCHITECTURE_GUIDE.md), [change workflow](references/architecture/ARCHITECTURE_CHANGE_WORKFLOW.md) | [template](assets/architecture/ARCHITECTURE_TEMPLATE.md) |
+| Codebase map | [guide](references/codebase-map/CODEBASE_MAP_GUIDE.md) | [template](assets/codebase-map/CODEBASE_MAP_TEMPLATE.md) |
+| ADR | [guide](references/adr/ADR_GUIDE.md) | [template](assets/adr/ADR_TEMPLATE.md) |
+| Contract | [guide](references/contracts/CONTRACT_GUIDE.md) | [template](assets/contracts/CONTRACT_TEMPLATE.md) |
+| Roadmap and phase plan | [guide](references/roadmap/ROADMAP_GUIDE.md) | [roadmap](assets/roadmap/ROADMAP_TEMPLATE.md), [phase plan](assets/roadmap/PHASE_PLAN_TEMPLATE.md) |
+| Qualification | [guide](references/qualification/QUALIFICATION_GUIDE.md) | [report](assets/qualification/QUALIFICATION_REPORT_TEMPLATE.md) |
 
-- architecture -> `docs/engineering/architecture/ARCHITECTURE_GUIDE.md`
-- codebase map -> `docs/engineering/codebase-map/CODEBASE_MAP_GUIDE.md`
-- ADR -> `docs/engineering/adr/ADR_GUIDE.md`
-- contract -> `docs/engineering/contract/CONTRACT_GUIDE.md`
-- roadmap and phase plans -> `docs/engineering/roadmap/ROADMAP_GUIDE.md`
-- qualification -> `docs/engineering/qualification/QUALIFICATION_GUIDE.md`
+This repository assembles these directories at installation time. When maintaining the
+workflow source itself, resolve `references/DOCUMENTATION_MODEL.md` to the repository
+root, and strip `references/` or `assets/` from the other paths to locate their source.
+Templates contain example project links to adapt when creating an authority.
+
+Consumer repositories need no copy under `docs/engineering/`. If existing project
+instructions still select such a historical copy, report the migration boundary and
+follow the explicit project policy; do not silently mix it with the global corpus.
 
 Do not bulk-read unrelated documentation. Do not treat templates, this skill, execution
 reports, or other workflow-repository material as project decisions.
@@ -95,7 +99,7 @@ particular:
 - contracts contain current normative behavior, while rationale belongs in ADRs;
 - qualifications preserve evidence and its limits without becoming contracts or roadmaps.
 
-These examples do not override the guides under `docs/engineering/`.
+These examples do not override the bundled guides or explicit project rules.
 
 ## 6. Verify the result
 

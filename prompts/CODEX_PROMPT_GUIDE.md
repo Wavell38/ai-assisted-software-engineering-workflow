@@ -29,10 +29,10 @@ réellement changer et le type de changement attendu. Le delta documentaire peut
 être `none`.
 
 Lorsque le skill `maintain-project-authorities` est installé, demande à Codex de l'utiliser pour
-toute création ou mise à jour sémantique d'une autorité structurée. Le corpus de politique
-documentaire du projet vit sous `docs/engineering/` ; le skill applique
-`docs/engineering/DOCUMENTATION_MODEL.md` et les guides projet correspondants, que le prompt ne
-doit pas recopier.
+toute création ou mise à jour sémantique d'une autorité structurée. Le skill applique son
+modèle documentaire et ses guides embarqués, chargés relativement à son emplacement.
+Le prompt ne doit pas les recopier ; les faits et adaptations propres au projet restent
+dans ses autorités.
 
 Traite les décisions explicitement établies dans la conversation courante comme le
 delta de conception à transcrire. Distingue une décision d'une hypothèse, d'une option,
@@ -203,10 +203,10 @@ documentation. Exemples de forme :
 - `<phase / contract / architecture / qualification>` : <delta précis>
 
 Si `maintain-project-authorities` est installé, l'utiliser pour appliquer ces changements. Le
-skill route la politique depuis le corpus projet sous `docs/engineering/`. S'il n'est pas
-disponible, lire directement `docs/engineering/DOCUMENTATION_MODEL.md` et le guide du type de
-document concerné. Ne pas supposer que les fichiers de prompt/review du dépôt de workflow ont été
-copiés dans le projet.
+skill route la politique depuis ses références embarquées. S'il n'est pas disponible,
+signaler la dépendance manquante ou utiliser les sources du dépôt de workflow explicitement
+fourni. Si les instructions projet imposent encore une copie historique sous
+`docs/engineering/`, rendre cette limite de migration explicite sans mélanger les corpus.
 
 Après le run :
 

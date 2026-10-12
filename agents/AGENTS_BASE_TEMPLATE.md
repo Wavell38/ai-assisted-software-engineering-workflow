@@ -3,6 +3,8 @@
 > Copy this file into a new repository, then adapt or remove the sections marked
 > `PROJECT-SPECIFIC`. Keep the permanent rules concise; detailed architecture and
 > framework guidance should live in authoritative project documentation.
+> Shared workflow triggers and bundled guidance come from the global installation.
+> Keep only project-specific adaptations and authority locations here.
 
 ## Scope
 
@@ -115,14 +117,14 @@ exists deeper in the tree.
 
 ## Documentation
 
-- The project documentation-policy root is `docs/engineering/`.
-- The project copy under `docs/engineering/` contains the documentation model and the type-specific authority guides/templates needed by the project; it does not need to contain the workflow repository's prompt, review, agent-template, README, or global-skill material.
-- `docs/engineering/DOCUMENTATION_MODEL.md` defines authority ownership. Applicable guides live under `docs/engineering/adr/`, `architecture/`, `codebase-map/`, `contract/`, `qualification/`, and `roadmap/`.
+<!-- PROJECT-SPECIFIC: identify authority paths and explicit departures from the global
+documentation model. Do not copy shared skill procedures or their global triggers here. -->
+
+- Project authority locations: `<architecture, codebase map, ADRs, contracts, roadmap, phases, qualification>`.
+- Project-specific documentation rules: `<adaptations, or none>`.
 - Update authoritative documentation when behavior, contracts, architecture, interfaces, operational procedures, or accepted project state changes.
-- When the global `maintain-project-authorities` skill is installed, use it for every semantic creation or update of a structured project authority, including small updates; otherwise apply `docs/engineering/DOCUMENTATION_MODEL.md` and the applicable type-specific guide directly.
 - Treat living authorities as current-state projections, not append-only execution logs: replace superseded state and route history/evidence to the authority that owns it.
 - Keep durable design knowledge in project documentation rather than repeating it in task prompts.
-- Use roadmap/codebase-map/document links as context routers when available; read specialized authorities only when they are relevant to the current task instead of bulk-reading unrelated documentation.
 - Do not document an implementation as accepted until the corresponding evidence and validation exist.
 
 ## Repository hygiene

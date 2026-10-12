@@ -44,8 +44,8 @@ d'accumuler une chronologie de runs. Les ADR et rapports de qualification conser
 des décisions et preuves durables dans leur contexte.
 
 Le skill opérationnel `maintain-project-authorities`, lorsqu'il est installé, applique cette
-discipline avec le modèle documentaire et les guides du dépôt sans devenir lui-même une source
-d'autorité.
+discipline avec le modèle documentaire et les guides embarqués sans devenir une source
+de faits propres au projet.
 
 ### Chargement progressif du contexte
 
@@ -165,54 +165,122 @@ Tous ces documents ne sont pas nécessaires sur un petit projet.
 
 Le modèle complet est décrit dans [`DOCUMENTATION_MODEL.md`](DOCUMENTATION_MODEL.md).
 
-## Convention d'intégration dans un projet
+## Installation globale Codex (Windows et Ubuntu)
 
-Le dépôt de workflow contient davantage de matériel que ce qu'un projet doit embarquer.
+L'installation assemble les ressources existantes sans déplacer les sources ni créer de
+fichiers dans les projets consommateurs. Prérequis : **Python 3.11+**, Git pour récupérer
+le dépôt, et une version de Codex prenant en charge les skills utilisateur et les agents
+personnalisés TOML. Aucun package Python tiers, service ou accès réseau n'est utilisé par
+l'installateur. Les modèles des reviewers restent ceux des profils fournis ; leur accès
+via le compte Codex n'est pas vérifié par le script.
 
-Dans un projet, le corpus de **politique documentaire** standard est copié sous
-`docs/engineering/` et reste volontairement minimal :
+Les emplacements suivent la documentation officielle de [découverte des skills](https://learn.chatgpt.com/docs/build-skills),
+des [agents personnalisés](https://learn.chatgpt.com/docs/agent-configuration/subagents) et des
+[instructions globales](https://learn.chatgpt.com/docs/agent-configuration/agents-md).
 
-```text
-docs/
-  engineering/
-    VERSION
-    DOCUMENTATION_MODEL.md
-    adr/
-      ADR_GUIDE.md
-      ADR_TEMPLATE.md
-    architecture/
-      ARCHITECTURE_GUIDE.md
-      ARCHITECTURE_TEMPLATE.md
-      ARCHITECTURE_CHANGE_WORKFLOW.md
-    codebase-map/
-      CODEBASE_MAP_GUIDE.md
-      CODEBASE_MAP_TEMPLATE.md
-    contract/
-      CONTRACT_GUIDE.md
-      CONTRACT_TEMPLATE.md
-    qualification/
-      QUALIFICATION_GUIDE.md
-      QUALIFICATION_REPORT_TEMPLATE.md
-    roadmap/
-      ROADMAP_GUIDE.md
-      ROADMAP_TEMPLATE.md
-      PHASE_PLAN_TEMPLATE.md
+Depuis le dépôt récupéré sur la branche de distribution choisie :
+
+Windows (PowerShell) :
+
+```powershell
+python --version
+python .\scripts\install.py
+python .\scripts\install.py --check
 ```
 
-`AGENTS.md` reste à l'emplacement normal du projet et référence cette convention.
+Ubuntu :
 
-Les éléments suivants restent normalement dans le dépôt de workflow ou dans l'installation
-globale de l'environnement agentique, et **n'ont pas besoin d'être copiés dans chaque projet** :
+```bash
+python3 --version
+python3 scripts/install.py
+python3 scripts/install.py --check
+```
 
-- `README.md` du workflow ;
-- `ENGINEERING_WORKFLOW.md` ;
-- le template `AGENTS_BASE_TEMPLATE.md` une fois le `AGENTS.md` projet créé ;
-- les guides de génération de prompt et de sélection de modèle ;
-- la politique et les fichiers opérationnels de review/remédiation ;
-- `maintain-project-authorities`, `review-and-remediate` et les configurations de reviewers.
+Le script peut aussi être appelé par son chemin absolu depuis un autre répertoire.
+Il utilise le home utilisateur (`Path.home()`). Si `CODEX_HOME` est défini, il doit
+être absolu (sans `..`) ; sinon le Codex home est `~/.codex`. Les skills restent
+sous `~/.agents/skills`, indépendamment de `CODEX_HOME`.
 
-Cette séparation garde le contexte projet compact : l'agent dispose des autorités et politiques
-documentaires nécessaires au projet, tandis que les procédures générales restent globales.
+| Emplacement installé | Contenu |
+| --- | --- |
+| `~/.agents/skills/maintain-project-authorities/` | `SKILL.md`, `VERSION`, modèle et guides sous `references/`, templates sous `assets/` |
+| `~/.agents/skills/review-and-remediate/` | `SKILL.md`, `VERSION`, cinq profils de reviewers ; référence relative au skill documentaire voisin |
+| `<CODEX_HOME>/agents/` | Les cinq profils TOML, avec leurs rôles, modèles et efforts de raisonnement |
+| `<CODEX_HOME>/AGENTS.md` | Bloc délimité par `<!-- workflow-ia:begin -->` et `<!-- workflow-ia:end -->` |
+
+Le bloc provient de [`agents/GLOBAL_AGENTS_BLOCK.md`](agents/GLOBAL_AGENTS_BLOCK.md).
+Le [`AGENTS.md`](AGENTS.md) racine gouverne uniquement la maintenance de ce dépôt.
+Le modèle documentaire distingue toujours état accepté, décisions, preuves et provenance.
+Les skills chargent progressivement leurs ressources ; les autorités propres à chaque
+projet restent dans ce projet, à ses emplacements habituels.
+
+### Mise à jour et vérification
+
+Récupérer les changements de la branche choisie, par exemple `git pull --ff-only`, puis
+réexécuter la même commande d'installation. Le script ne choisit aucune branche et ne
+fait aucun téléchargement. Redémarrer la session Codex pour recharger les instructions
+et profils ; vérifier que les deux skills et les cinq rôles sont disponibles.
+
+`--check` vérifie sans écrire : code de sortie **0** si l'installation correspond aux
+sources, **1** si une installation/mise à jour est nécessaire, **2** pour une erreur ou
+un conflit. Il valide aussi les ressources sources, les TOML et le routage des skills.
+Il ne teste ni un appel de modèle ni les paramètres de désactivation dans `config.toml`.
+
+Une réexécution identique conserve les fichiers et leurs dates de modification. Chaque
+bundle et le répertoire des reviewers portent un `.workflow-ia-managed.json` : ce
+manifeste d'empreintes identifie les fichiers gérés ; ce n'est pas une seconde version
+et il ne doit pas être édité à la main. Les fichiers personnels non gérés sont conservés.
+Une modification locale d'un fichier géré qui diffère des sources provoque un conflit :
+conserver ou réconcilier cette adaptation avant de relancer. Les anciens fichiers suivis
+qui ne sont plus distribués sont supprimés seulement si leur empreinte est inchangée.
+
+Avant de reprendre des fichiers existants sans propriété établie, le script sauvegarde
+les fichiers concernés sous `~/.agents/.workflow-ia-backups/<identifiant>/` pour les skills,
+ou `<CODEX_HOME>/.workflow-ia-backups/<identifiant>/` pour les reviewers et instructions.
+Les sauvegardes sont hors des répertoires de découverte des skills. Leur emplacement est
+affiché ; elles restent disponibles pour restauration manuelle. Les fichiers personnels
+supplémentaires sont laissés en place, y compris lors de la reprise d'une ancienne installation.
+
+Le bloc global est ajouté ou remplacé en préservant les octets hors marqueurs. Des marqueurs
+malformés ou multiples bloquent avant toute écriture. La présence de `AGENTS.override.md`
+bloque également : ce fichier peut masquer `AGENTS.md`. Réconcilier explicitement ces
+instructions et retirer ou renommer l'override si l'on veut activer le bloc global.
+Le script ne modifie jamais l'override ni `config.toml`.
+
+Les liens symboliques, jonctions et autres points de réanalyse Windows dans les chemins
+utilisés sont refusés, y compris dans les parents. Résoudre ce conflit manuellement ;
+l'installateur ne parcourt ni n'efface leur cible. Les sources et destinations ne doivent
+pas se chevaucher. L'installation doit être exécutée sans autre processus modifiant les
+mêmes chemins. Chaque fichier est préparé temporairement puis remplacé sur le même
+système de fichiers ; l'ensemble de l'installation n'est pas une transaction atomique.
+Après un échec d'E/S, certains fichiers peuvent déjà être à jour : corriger la cause et
+relancer, puis exécuter `--check`. Les sauvegardes sont terminées avant les écritures gérées.
+
+### Migration des projets existants
+
+Les nouveaux projets n'ont plus à copier les guides sous `docs/engineering/`. Adapter
+manuellement leur `AGENTS.md` avec [`AGENTS_BASE_TEMPLATE.md`](agents/AGENTS_BASE_TEMPLATE.md)
+uniquement si nécessaire. Aucune documentation projet n'est générée par l'installation.
+
+Les anciens `AGENTS.md` peuvent toujours imposer leur copie historique sous
+`docs/engineering/`. L'installation globale ne les migre pas et ne supprime pas ces copies.
+Identifier les adaptations locales, choisir explicitement la politique applicable, puis
+mettre à jour le routage du projet. Les skills signalent cette frontière et suivent la
+politique projet explicite sans mélanger silencieusement corpus global et copie ancienne.
+D'éventuels doublons des mêmes skills dans d'autres emplacements de découverte restent à
+réconcilier manuellement ; seuls les emplacements listés ci-dessus sont gérés.
+
+### Validation du dépôt
+
+```powershell
+python -B -m unittest discover -s tests -v
+```
+
+Sur Ubuntu, utiliser `python3 -B -m unittest discover -s tests -v`. Les tests utilisent
+exclusivement des répertoires temporaires, y compris pour le home et `CODEX_HOME`.
+Les tests de liens sont ignorés si leur création est interdite ; le test de jonction est
+spécifique à Windows. Un succès sur une plateforme ne constitue pas une validation réelle
+sur l'autre.
 
 ## Version du workflow
 
@@ -226,13 +294,12 @@ La version est mise à jour manuellement avec l’évolution cohérente qu’ell
 - **mineure** (`x.Y.0`) : évolution compatible des règles, capacités ou templates ;
 - **corrective** (`x.y.Z`) : correction ou clarification sans changement du fonctionnement attendu.
 
-La première version explicite initialise cette convention. Un run d’un projet consommateur
-ne change pas la version du workflow.
+Le passage à l'installation globale remplace la convention de copie documentaire par projet :
+il constitue une évolution majeure du corpus. « V1 de l'installateur » ne désigne pas la version
+du corpus. Un run d’un projet consommateur ne change pas la version du workflow.
 
 Pour conserver la provenance lors d’une copie ou d’une installation :
 
-- copier `VERSION` vers `docs/engineering/VERSION` avec le sous-ensemble documentaire utilisé,
-  depuis la même révision du dépôt ;
 - lors de l’installation d’un skill, copier également `VERSION` dans son dossier, à côté de
   `SKILL.md`, avec les fichiers du skill et ses profils associés lorsqu’il en possède ;
 - lors d’une mise à jour, synchroniser le marqueur avec les fichiers réellement intégrés.
@@ -258,9 +325,8 @@ Sans marqueur, la version est inconnue et ne doit pas être déduite du contenu.
 
 - [`review/maintain-project-authorities/SKILL.md`](review/maintain-project-authorities/SKILL.md) — procédure opérationnelle pour créer, modifier sémantiquement, revoir ou compacter les autorités structurées en appliquant `DOCUMENTATION_MODEL.md` et le guide du document concerné.
 
-Le skill peut être installé globalement dans l'environnement agentique. Les projets n'ont pas
-besoin d'en recopier le contenu lorsqu'il est déjà disponible globalement ; il applique le
-corpus de politique documentaire du projet sous `docs/engineering/`.
+L'installateur assemble ses références et templates depuis les dossiers sources existants.
+Le skill applique ce corpus embarqué et les adaptations explicites propres au projet.
 
 ### Review et remédiation
 
@@ -275,7 +341,8 @@ Les configurations de reviewers sont regroupées avec ce skill :
 - [`review/review-and-remediate/architecture-reviewer.toml`](review/review-and-remediate/architecture-reviewer.toml)
 - [`review/review-and-remediate/documentation-reviewer.toml`](review/review-and-remediate/documentation-reviewer.toml)
 
-Leur emplacement dans ce dépôt sert à regrouper les éléments du workflow. Leur installation effective peut nécessiter de les placer ou de les adapter selon les conventions de l’outil agentique utilisé.
+Leur emplacement source regroupe les éléments du workflow. L'installateur copie les profils
+sans transformation dans le bundle de review et dans le dossier `agents/` du Codex home actif.
 
 ### Architecture
 
