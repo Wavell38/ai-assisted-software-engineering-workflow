@@ -142,7 +142,7 @@ def load_sources(root: Path) -> tuple[dict[str, dict[str, bytes]], dict[str, byt
         reviewers[name] = content
         bundles[SKILLS[1]][name] = content
     validate_links(bundles)
-    block = source_file(root, "agents/GLOBAL_AGENTS_BLOCK.md").strip()
+    block = source_file(root, "agents/GLOBAL_AGENTS_SECTION.md").strip()
     if merge_instructions(block, block) != block or not block.startswith(BEGIN) or not block.endswith(END):
         raise InstallError("Invalid global instruction block source")
     return bundles, reviewers, block

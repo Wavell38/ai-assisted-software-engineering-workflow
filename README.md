@@ -208,7 +208,7 @@ sous `~/.agents/skills`, indépendamment de `CODEX_HOME`.
 | `<CODEX_HOME>/agents/` | Les cinq profils TOML, avec leurs rôles, modèles et efforts de raisonnement |
 | `<CODEX_HOME>/AGENTS.md` | Bloc délimité par `<!-- workflow-ia:begin -->` et `<!-- workflow-ia:end -->` |
 
-Le bloc provient de [`agents/GLOBAL_AGENTS_BLOCK.md`](agents/GLOBAL_AGENTS_BLOCK.md).
+Le bloc provient de [`agents/GLOBAL_AGENTS_SECTION.md`](agents/GLOBAL_AGENTS_SECTION.md).
 Le [`AGENTS.md`](AGENTS.md) racine gouverne uniquement la maintenance de ce dépôt.
 Le modèle documentaire distingue toujours état accepté, décisions, preuves et provenance.
 Les skills chargent progressivement leurs ressources ; les autorités propres à chaque

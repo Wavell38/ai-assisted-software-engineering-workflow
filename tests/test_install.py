@@ -34,7 +34,7 @@ class InstallationTests(unittest.TestCase):
         self.review = self.skills / installer.SKILLS[1]
         self.instructions = self.codex / "AGENTS.md"
         # Copy only distributable sources, never local Codex state or the Git database.
-        paths = ["VERSION", "agents/GLOBAL_AGENTS_BLOCK.md", "scripts/install.py", *installer.GUIDES, *installer.TEMPLATES]
+        paths = ["VERSION", "agents/GLOBAL_AGENTS_SECTION.md", "scripts/install.py", *installer.GUIDES, *installer.TEMPLATES]
         paths += [f"review/{name}/SKILL.md" for name in installer.SKILLS]
         paths += [f"review/{installer.SKILLS[1]}/{role}-reviewer.toml" for role in installer.REVIEWERS]
         for name in paths:
@@ -71,7 +71,8 @@ class InstallationTests(unittest.TestCase):
             self.assertEqual(profile["model_reasoning_effort"], "xhigh" if role == "architecture" else "high")
         for root in (self.doc, self.review):
             self.assertEqual((root / "VERSION").read_bytes(), (self.source / "VERSION").read_bytes())
-        self.assertIn(installer.BEGIN, self.instructions.read_bytes())
+        expected = (self.source / "agents/GLOBAL_AGENTS_SECTION.md").read_bytes().strip() + b"\n"
+        self.assertEqual(self.instructions.read_bytes(), expected)
         self.assertTrue(self.run_install(check=True))
 
     def test_second_install_does_not_change_files_or_mtimes(self):
@@ -113,21 +114,33 @@ class InstallationTests(unittest.TestCase):
         self.run_install()
         self.assertTrue(list((self.home / ".agents/.workflow-ia-backups").rglob("SKILL.md")))
 
-    def test_global_block_update_preserves_surrounding_bytes(self):
+    def test_global_section_update_preserves_surrounding_bytes(self):
         prefix = b"\xef\xbb\xbf# Personal\r\n\r\n"
-        suffix = b"\r\n\r\n# More personal rules\r\n"
+        suffix = "\r\n\r\n# SonarQube\r\nConserver les règles d'analyse.\r\n".encode("utf-8")
         self.write(self.instructions, prefix + installer.BEGIN + b"\r\nold block\r\n" + installer.END + suffix)
         self.run_install()
-        expected = (self.source / "agents/GLOBAL_AGENTS_BLOCK.md").read_bytes().strip()
+        source = self.source / "agents/GLOBAL_AGENTS_SECTION.md"
+        expected = source.read_bytes().strip()
         self.assertEqual(self.instructions.read_bytes(), prefix + expected + suffix)
-        self.write(self.source / "agents/GLOBAL_AGENTS_BLOCK.md", expected.replace(b"Shared engineering", b"Common engineering") + b"\n")
+        updated = expected.replace(b"Shared Engineering", b"Common Engineering")
+        self.assertNotEqual(updated, expected)
+        self.write(source, updated + b"\n")
+        before = self.snapshot()
+        self.assertFalse(self.run_install(check=True))
+        self.assertEqual(self.snapshot(), before)
         self.run_install()
-        self.assertEqual(self.instructions.read_bytes(), prefix + expected.replace(b"Shared engineering", b"Common engineering") + suffix)
+        self.assertEqual(self.instructions.read_bytes(), prefix + updated + suffix)
+        before = self.snapshot()
+        self.assertTrue(self.run_install(check=True))
+        self.run_install()
+        self.assertEqual(self.snapshot(), before)
 
     def test_append_preserves_user_content_without_final_newline(self):
-        self.write(self.instructions, "Règles personnelles".encode())
+        personal = "Règles personnelles\r\n# SonarQube\r\nConserver les règles d'analyse.".encode("utf-8")
+        self.write(self.instructions, personal)
         self.run_install()
-        self.assertTrue(self.instructions.read_bytes().startswith("Règles personnelles\n\n".encode()))
+        expected = (self.source / "agents/GLOBAL_AGENTS_SECTION.md").read_bytes().strip()
+        self.assertEqual(self.instructions.read_bytes(), personal + b"\n\n" + expected + b"\n")
 
     def test_malformed_markers_fail_without_writes(self):
         for content in (installer.BEGIN, installer.END, installer.END + b"\n" + installer.BEGIN,
