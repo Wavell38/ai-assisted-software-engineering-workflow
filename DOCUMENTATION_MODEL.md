@@ -59,6 +59,53 @@ revoir ou compacter une autorité structurée.
 | `phases/*` | Que faut-il conserver de spécifique à une phase complexe ? | scope, découpe utile, références, qualification attendue, décisions temporaires non autoritatives | duplication des autorités globales, preuves détaillées |
 | `qualification/*` | Quelles preuves durables ont été obtenues ? | conditions, mesures/résultats matériels, reproduction, verdict, limites, références vers les preuves | redéfinition du contrat/architecture, journaux bruts, accumulation d'artefacts générés |
 
+## Politique documentaire locale optionnelle
+
+Le modèle et les guides embarqués dans `maintain-project-authorities` forment le **socle
+commun** de maintenance des autorités structurées. Un projet peut ajouter des règles
+**documentaires** propres à son domaine sans recopier ce socle.
+
+Le point d'entrée conventionnel, facultatif, est
+`docs/engineering/PROJECT_DOCUMENTATION_POLICY.md` (à la racine de `docs/engineering/`,
+pas à la racine du dépôt). Ce fichier :
+
+- définit uniquement les **ajouts, précisions ou dérogations explicites** relatifs à la
+  création, au contenu, au routage ou à la vérification des autorités du projet ;
+- précise la portée des règles locales et référence, si nécessaire, les guides
+  documentaires locaux qui les détaillent ;
+- ne recopie ni `DOCUMENTATION_MODEL.md` ni les guides et templates communs ;
+- ne remplace pas les autorités du projet et ne sert pas d'inventaire de tous ses
+  guides techniques.
+
+Lors d'une création, modification sémantique, revue ou compaction d'autorité structurée,
+`maintain-project-authorities` vérifie **uniquement cet emplacement conventionnel**.
+S'il est absent, aucune politique documentaire locale supplémentaire n'est chargée.
+S'il existe, le skill ne charge que ses règles et références applicables, en complément
+du modèle et du guide de type globaux pertinents.
+
+Un ajout compatible complète le socle. Toute dérogation à une règle commune doit
+identifier précisément la règle, sa portée et sa justification acceptée ; elle ne
+bénéficie pas d'une priorité implicite. Si une contradiction applicable reste non
+résolue, la signaler plutôt que choisir silencieusement une règle.
+
+## Guides techniques de framework / domaine
+
+Un projet peut conserver des guides spécialisés sous
+`docs/engineering/<framework-or-domain>/` ou un autre chemin local explicite, par
+exemple `docs/engineering/unreal/UNREAL_ENGINE_WORKFLOW_GUIDE.md`.
+
+Ils expliquent **comment travailler avec une surface technique** (outillage, exécution,
+validation, production de preuves), sans définir l'architecture ou les décisions
+acceptées du produit. Leur lecture est routée par le `AGENTS.md` local, un prompt ou
+une référence pertinente, uniquement lorsque la tâche touche ce domaine.
+
+Ces guides ne constituent **pas par défaut une extension de la politique documentaire**
+et n'ont pas besoin d'être chargés par `maintain-project-authorities`. Si l'un d'eux
+porte des exigences spécifiques sur la rédaction ou la vérification d'une autorité,
+`PROJECT_DOCUMENTATION_POLICY.md` peut référencer ces exigences et les sections
+concernées. Ne pas confondre guide technique, autorité du projet et politique
+documentaire.
+
 ## Preuves et artefacts de qualification
 
 `qualification/*` désigne les **rapports durables de qualification**, pas un emplacement
@@ -181,8 +228,12 @@ relevant code
 
 Règles :
 
-- lorsqu'une tâche crée ou modifie sémantiquement une autorité structurée et que le skill
-  `maintain-project-authorities` est installé, l'utiliser comme procédure opérationnelle ;
+- lorsqu'une tâche crée, modifie sémantiquement, revoit ou compacte une autorité
+  structurée, utiliser `maintain-project-authorities` lorsqu'il est installé : charger
+  le modèle et le guide global pertinents, puis vérifier la politique documentaire
+  locale optionnelle selon la convention ci-dessus ;
+- charger les guides techniques locaux référencés lorsqu'ils sont pertinents pour la
+  tâche, sans les traiter comme des extensions documentaires automatiques ;
 - ne pas lire toute la documentation « au cas où » ;
 - suivre les références explicites lorsque la tâche en dépend ;
 - ouvrir une autorité globale seulement si elle porte une contrainte applicable ;

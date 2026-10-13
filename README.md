@@ -165,6 +165,28 @@ Tous ces documents ne sont pas nécessaires sur un petit projet.
 
 Le modèle complet est décrit dans [`DOCUMENTATION_MODEL.md`](DOCUMENTATION_MODEL.md).
 
+### Socle documentaire et extensions locales
+
+Les guides et templates documentaires communs sont fournis par le skill global
+`maintain-project-authorities` ; les autorités propres au projet restent dans son dépôt.
+Aucune copie du corpus commun sous `docs/engineering/` n'est nécessaire.
+
+Un projet peut définir une **extension documentaire facultative** dans
+`docs/engineering/PROJECT_DOCUMENTATION_POLICY.md`. Ce fichier sert de point d'entrée aux
+ajouts, précisions ou dérogations explicitement acceptés et route, si nécessaire, vers des
+guides documentaires locaux. Le skill vérifie uniquement cet emplacement conventionnel,
+puis ne charge que les règles et références pertinentes ; en son absence, le socle global
+suffit. Toute dérogation doit être justifiée et un conflit non résolu doit être signalé.
+
+[`PROJECT_DOCUMENTATION_POLICY_TEMPLATE.md`](PROJECT_DOCUMENTATION_POLICY_TEMPLATE.md)
+sert à préparer ce fichier avec ChatGPT ou un autre assistant. **Ce template sert
+uniquement à la rédaction et ne doit pas être distribué dans le skill installé.**
+
+Les **guides techniques locaux** (par exemple un guide Unreal sous
+`docs/engineering/unreal/`) restent routés par les instructions `AGENTS.md` du projet ou
+par une référence explicite. Ils ne constituent pas automatiquement des extensions
+documentaires.
+
 ## Installation globale Codex (Windows et Ubuntu)
 
 L'installation assemble les ressources existantes sans déplacer les sources ni créer de
@@ -258,8 +280,10 @@ relancer, puis exécuter `--check`. Les sauvegardes sont terminées avant les é
 
 ### Migration des projets existants
 
-Les nouveaux projets n'ont plus à copier les guides sous `docs/engineering/`. Adapter
-manuellement leur `AGENTS.md` avec [`AGENTS_BASE_TEMPLATE.md`](agents/AGENTS_BASE_TEMPLATE.md)
+Les nouveaux projets n'ont plus à copier les guides **communs** sous
+`docs/engineering/`. Ce répertoire peut toujours contenir une politique documentaire
+locale optionnelle ou des guides techniques propres au projet. Adapter manuellement
+leur `AGENTS.md` avec [`AGENTS_BASE_TEMPLATE.md`](agents/AGENTS_BASE_TEMPLATE.md)
 uniquement si nécessaire. Aucune documentation projet n'est générée par l'installation.
 
 Les anciens `AGENTS.md` peuvent toujours imposer leur copie historique sous
@@ -315,7 +339,8 @@ Sans marqueur, la version est inconnue et ne doit pas être déduite du contenu.
 ### Workflow global
 
 - [`ENGINEERING_WORKFLOW.md`](ENGINEERING_WORKFLOW.md) — processus complet : raisonnement, spécification, découpage, exécution, validation, review, remédiation, blockers, checkpoint anti-dérive, qualification, provenance et rollback.
-- [`DOCUMENTATION_MODEL.md`](DOCUMENTATION_MODEL.md) — autorités documentaires, responsabilités et routage progressif du contexte.
+- [`DOCUMENTATION_MODEL.md`](DOCUMENTATION_MODEL.md) — autorités documentaires, responsabilités, extensions locales optionnelles et routage progressif du contexte.
+- [`PROJECT_DOCUMENTATION_POLICY_TEMPLATE.md`](PROJECT_DOCUMENTATION_POLICY_TEMPLATE.md) — modèle de rédaction, non installé, pour les politiques documentaires locales facultatives.
 
 ### Base agent
 

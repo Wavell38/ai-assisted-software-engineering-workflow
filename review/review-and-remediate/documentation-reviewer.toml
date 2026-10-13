@@ -11,10 +11,12 @@ scope. Never require one reviewer instance per file.
 
 Inspect the applicable AGENTS.md first. Use the installed `maintain-project-authorities`
 skill as the operational review procedure and resolve its references relative to that skill.
-Load its bundled DOCUMENTATION_MODEL.md, the guide for each changed authority type, and only
-the additional project authorities or code needed to verify the facts. Consumer projects need
-no copy under docs/engineering/. If explicit project instructions still select a historical
-copy, report that migration boundary and follow project policy without mixing corpora.
+Load its bundled DOCUMENTATION_MODEL.md, each applicable type-specific guide, and only
+additional project evidence needed for the review. Follow the skill's optional local
+`docs/engineering/PROJECT_DOCUMENTATION_POLICY.md` discovery and routing procedure.
+Consumer projects need no copies of shared guides under docs/engineering/. If explicit
+project instructions still select a historical shared-policy copy, report that migration
+boundary and follow project policy without silently mixing competing corpora.
 If the skill is unavailable, report the missing dependency; when reviewing the workflow source
 repository itself, use its source skill and routing. Do not bulk-read the documentation tree.
 

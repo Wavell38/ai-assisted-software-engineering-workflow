@@ -23,10 +23,13 @@ Resolve the following paths relative to this installed skill, never to the consu
 repository or current working directory. Load progressively:
 
 1. [documentation model](references/DOCUMENTATION_MODEL.md);
-2. the guide for each target document type;
-3. the corresponding template only when creating a document, materially restructuring it,
+2. check the optional project documentation policy at
+   `docs/engineering/PROJECT_DOCUMENTATION_POLICY.md`, relative to the consumer repository
+   root; load it only if present;
+3. the guide for each target document type;
+4. the corresponding template only when creating a document, materially restructuring it,
    or when the guide explicitly requires it;
-4. only the project authorities, code, phase state, or evidence needed to establish the facts
+5. only the project authorities, code, phase state, or evidence needed to establish the facts
    being written.
 
 | Target | Guide | Template (only when needed) |
@@ -43,9 +46,23 @@ workflow source itself, resolve `references/DOCUMENTATION_MODEL.md` to the repos
 root, and strip `references/` or `assets/` from the other paths to locate their source.
 Templates contain example project links to adapt when creating an authority.
 
-Consumer repositories need no copy under `docs/engineering/`. If existing project
-instructions still select such a historical copy, report the migration boundary and
-follow the explicit project policy; do not silently mix it with the global corpus.
+Consumer repositories need no copy of the shared guides under `docs/engineering/`.
+The optional `PROJECT_DOCUMENTATION_POLICY.md` is a local extension, not a second copy
+of the bundled documentation model. When present, use it as a routing entry point:
+apply only the rules relevant to the affected authority types and follow only their
+necessary local references, resolving their relative links from the referring local file.
+Do not scan the rest of `docs/engineering/` by default. An absent policy requires no
+additional action or new file.
+
+Local extensions supplement the bundled guidance. A deviation must identify the shared
+rule affected, its scope, and its accepted rationale; unresolved applicable conflicts
+must be reported rather than resolved silently. Framework/domain guides referenced by
+`AGENTS.md` remain separate technical guidance unless the local documentation policy
+explicitly routes to their documentation-related requirements.
+
+If existing project instructions still select a historical copy of shared documentary
+policy, report the migration boundary and follow the explicit project policy; do not
+silently mix two competing shared corpora.
 
 Do not bulk-read unrelated documentation. Do not treat templates, this skill, execution
 reports, or other workflow-repository material as project decisions.
