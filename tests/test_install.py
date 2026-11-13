@@ -33,10 +33,15 @@ class InstallationTests(unittest.TestCase):
         self.doc = self.skills / installer.SKILLS[0]
         self.review = self.skills / installer.SKILLS[1]
         self.instructions = self.codex / "AGENTS.md"
+        self.bin = self.home / ".local/bin"
+        self.path_env = patch.dict(os.environ, {"PATH": str(self.bin) + os.pathsep + os.environ.get("PATH", "")})
+        self.path_env.start()
+        self.addCleanup(self.path_env.stop)
         # Copy only distributable sources, never local Codex state or the Git database.
         paths = ["VERSION", "agents/GLOBAL_AGENTS_SECTION.md", "scripts/install.py", *installer.GUIDES, *installer.TEMPLATES]
         paths += [f"review/{name}/SKILL.md" for name in installer.SKILLS]
         paths += [f"review/{installer.SKILLS[1]}/{role}-reviewer.toml" for role in installer.REVIEWERS]
+        paths += list(installer.INIT_RESOURCES.values())
         for name in paths:
             target = self.source / name
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -71,6 +76,9 @@ class InstallationTests(unittest.TestCase):
             self.assertEqual(profile["model_reasoning_effort"], "xhigh" if role == "architecture" else "high")
         for root in (self.doc, self.review):
             self.assertEqual((root / "VERSION").read_bytes(), (self.source / "VERSION").read_bytes())
+        for target, source in installer.INIT_RESOURCES.items():
+            self.assertEqual((self.codex / "workflow-ia" / target).read_bytes(), (self.source / source).read_bytes())
+        self.assertEqual(Path(shutil.which("workflow-ia")), self.bin / ("workflow-ia.cmd" if os.name == "nt" else "workflow-ia"))
         expected = (self.source / "agents/GLOBAL_AGENTS_SECTION.md").read_bytes().strip() + b"\n"
         self.assertEqual(self.instructions.read_bytes(), expected)
         self.assertTrue(self.run_install(check=True))

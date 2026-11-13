@@ -14,6 +14,8 @@ autorités des projets consommateurs.
   Les instructions globales distribuées sont distinctes du présent fichier.
 - `scripts/install.py` assemble et installe les ressources ; `tests/` vérifie ce
   contrat dans des répertoires temporaires. `README.md` décrit leur utilisation.
+- `scripts/workflow_ia.py` orchestre le lancement interactif ; `INIT_WORKFLOW.md`
+  porte la procédure de cadrage et de génération, installée hors des skills.
 - `VERSION` est l'unique version du corpus, selon la politique du README.
 
 ## Discipline de modification

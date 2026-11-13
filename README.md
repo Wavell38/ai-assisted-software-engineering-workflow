@@ -206,6 +206,7 @@ Windows (PowerShell) :
 
 ```powershell
 python --version
+$env:Path = "$HOME\.local\bin;$env:Path"
 python .\scripts\install.py
 python .\scripts\install.py --check
 ```
@@ -214,11 +215,19 @@ Ubuntu :
 
 ```bash
 python3 --version
+export PATH="$HOME/.local/bin:$PATH"
 python3 scripts/install.py
 python3 scripts/install.py --check
 ```
 
 Le script peut aussi être appelé par son chemin absolu depuis un autre répertoire.
+Le répertoire utilisateur `~/.local/bin` doit être dans le PATH du terminal avant
+l'installation. Les lignes ci-dessus l'activent pour la session courante ; pour les
+terminaux suivants, l'ajouter au PATH utilisateur dans les paramètres Windows ou dans
+le profil du shell Ubuntu. L'installateur ne modifie ni registre ni profil shell.
+`--bin-dir <chemin-absolu>` permet de choisir un autre répertoire sous le home, déjà
+présent dans le PATH. Un répertoire absent du PATH ou une commande homonyme provoque
+un échec avant écriture ; une installation réussie vérifie la résolution de `workflow-ia`.
 Il utilise le home utilisateur (`Path.home()`). Si `CODEX_HOME` est défini, il doit
 être absolu (sans `..`) ; sinon le Codex home est `~/.codex`. Les skills restent
 sous `~/.agents/skills`, indépendamment de `CODEX_HOME`.
@@ -229,6 +238,8 @@ sous `~/.agents/skills`, indépendamment de `CODEX_HOME`.
 | `~/.agents/skills/review-and-remediate/` | `SKILL.md`, `VERSION`, cinq profils de reviewers ; référence relative au skill documentaire voisin |
 | `<CODEX_HOME>/agents/` | Les cinq profils TOML, avec leurs rôles, modèles et efforts de raisonnement |
 | `<CODEX_HOME>/AGENTS.md` | Bloc délimité par `<!-- workflow-ia:begin -->` et `<!-- workflow-ia:end -->` |
+| `<CODEX_HOME>/workflow-ia/` | CLI Python autonome, `INIT_WORKFLOW.md`, `AGENTS_BASE_TEMPLATE.md`, `VERSION` ; hors découverte des skills |
+| `~/.local/bin/` ou `--bin-dir` | Lanceur `workflow-ia` (Ubuntu) ou `workflow-ia.cmd` (Windows), avec manifeste de propriété |
 
 Le bloc provient de [`agents/GLOBAL_AGENTS_SECTION.md`](agents/GLOBAL_AGENTS_SECTION.md).
 Le [`AGENTS.md`](AGENTS.md) racine gouverne uniquement la maintenance de ce dépôt.
@@ -247,6 +258,9 @@ et profils ; vérifier que les deux skills et les cinq rôles sont disponibles.
 sources, **1** si une installation/mise à jour est nécessaire, **2** pour une erreur ou
 un conflit. Il valide aussi les ressources sources, les TOML et le routage des skills.
 Il ne teste ni un appel de modèle ni les paramètres de désactivation dans `config.toml`.
+Il vérifie aussi les ressources d'initialisation, le lanceur, son PATH et, sur Ubuntu,
+son droit d'exécution. Un exécutable homonyme sans propriété établie est refusé,
+même identique ; il n'est pas repris comme un ancien fichier documentaire.
 
 Une réexécution identique conserve les fichiers et leurs dates de modification. Chaque
 bundle et le répertoire des reviewers portent un `.workflow-ia-managed.json` : ce
@@ -278,6 +292,61 @@ système de fichiers ; l'ensemble de l'installation n'est pas une transaction at
 Après un échec d'E/S, certains fichiers peuvent déjà être à jour : corriger la cause et
 relancer, puis exécuter `--check`. Les sauvegardes sont terminées avant les écritures gérées.
 
+### Initialiser un projet : `workflow-ia init`
+
+Depuis un dépôt Git neuf (`git init`) ou existant, y compris un sous-répertoire :
+
+```text
+workflow-ia init
+```
+
+Prérequis d'exécution : Python 3.11+, Git et **Codex CLI 0.146.0+**, installé et
+authentifié séparément, avec accès au modèle demandé. Le CLI vérifie le worktree,
+la version et les options interactives annoncées par Codex, puis le lance à la
+racine Git dans le terminal courant, avec ses entrées/sorties continues. Les
+worktrees liés sont acceptés ; un dépôt bare ou une redirection par `GIT_DIR`,
+`GIT_WORK_TREE` ou `GIT_COMMON_DIR` est refusé.
+
+Le modèle `gpt-6.1-sol` et l'effort `xhigh` sont passés explicitement pour cette
+session. `--model <identifiant>` et `--reasoning-effort <niveau>` permettent un choix
+explicite ; aucun repli de modèle ou d'effort n'est tenté. L'accès effectif et les
+capacités du modèle sont contrôlés par Codex lors de la session, pas par le test
+d'aide local. Les erreurs et codes de sortie sont propagés ; un arrêt de Codex
+ne vaut pas confirmation de réussite documentaire.
+
+Le lanceur utilise le Python ayant effectué l'installation et des ressources sous
+le `CODEX_HOME` choisi à l'installation ; il reste autonome si le clone source est
+supprimé. Réinstaller après déplacement de Python ou changement de `CODEX_HOME`.
+L'environnement `CODEX_HOME` de la session reste transmis sans modification. Sous
+Windows, les exécutables natifs et les installations npm standard sont pris en
+charge (appel direct de Node et `codex.js`, sans passage par le shim batch).
+`--codex <chemin>` permet un exécutable explicite ou un wrapper Python ; les autres
+shims shell Windows sont refusés. L'installateur ne télécharge aucun prérequis.
+
+La procédure autonome [`INIT_WORKFLOW.md`](INIT_WORKFLOW.md) est lue par le CLI et
+injectée intégralement via `developer_instructions`, sans modifier `config.toml`.
+Elle prend en charge analyse progressive, questions adaptatives, cadrage soumis à
+validation humaine explicite, puis génération et review des autorités justifiées.
+Le [template AGENTS](agents/AGENTS_BASE_TEMPLATE.md) est distribué à ses côtés ; les
+guides et templates documentaires restent dans le skill global existant.
+
+La V1 utilise un agent principal pour l'analyse et la génération. Elle propose un
+périmètre réduit ou `BLOCKED` pour les dépôts trop complexes ou incertains. Les
+reviewers indépendants restent ceux de la gate existante. L'initialisation n'est
+ni une implémentation du produit ni une migration automatique des politiques
+historiques ; les autorités existantes doivent être réconciliées dans le cadrage.
+
+Les tests déterministes utilisent un faux Codex. La qualification cognitive exige
+des essais distincts avec un vrai modèle, encore à réaliser :
+
+- **Dépôt neuf** : initialiser un Git vide, décrire un petit produit, corriger puis
+  valider le cadrage. Vérifier l'absence d'écriture avant validation, des autorités
+  concises après validation et l'absence de chemins ou de codebase map inventés.
+- **Dépôt existant léger** : utiliser une copie de travail avec code et règles
+  personnelles, demander l'intégration, puis vérifier l'analyse étayée, le traitement
+  des contradictions, la validation avant adaptation et la préservation du contenu
+  hors périmètre. Refuser un premier cadrage pour vérifier l'attente effective.
+
 ### Migration des projets existants
 
 Les nouveaux projets n'ont plus à copier les guides **communs** sous
@@ -285,6 +354,8 @@ Les nouveaux projets n'ont plus à copier les guides **communs** sous
 locale optionnelle ou des guides techniques propres au projet. Adapter manuellement
 leur `AGENTS.md` avec [`AGENTS_BASE_TEMPLATE.md`](agents/AGENTS_BASE_TEMPLATE.md)
 uniquement si nécessaire. Aucune documentation projet n'est générée par l'installation.
+La commande `workflow-ia init` permet ensuite de conduire cette adaptation avec Codex
+et validation du cadrage dans le terminal.
 
 Les anciens `AGENTS.md` peuvent toujours imposer leur copie historique sous
 `docs/engineering/`. L'installation globale ne les migre pas et ne supprime pas ces copies.
@@ -305,6 +376,11 @@ exclusivement des répertoires temporaires, y compris pour le home et `CODEX_HOM
 Les tests de liens sont ignorés si leur création est interdite ; le test de jonction est
 spécifique à Windows. Un succès sur une plateforme ne constitue pas une validation réelle
 sur l'autre.
+Les tests du CLI couvrent aussi des dépôts neufs et existants légers, les chemins avec
+espaces, l'autonomie après suppression du clone source, la configuration de session,
+les échanges continus et les erreurs, sans appel réel de modèle. La préservation des
+documents par le lanceur est déterministe ; le respect du cadrage par Codex relève
+des essais réels ci-dessus.
 
 ## Version du workflow
 

@@ -9,6 +9,8 @@ import json
 import os
 from pathlib import Path, PurePosixPath
 import re
+import shlex
+import shutil
 import stat
 import sys
 import tempfile
@@ -42,6 +44,12 @@ TEMPLATES = (
     "roadmap/ROADMAP_TEMPLATE.md",
     "roadmap/PHASE_PLAN_TEMPLATE.md",
 )
+INIT_RESOURCES = {
+    "workflow_ia.py": "scripts/workflow_ia.py",
+    "INIT_WORKFLOW.md": "INIT_WORKFLOW.md",
+    "AGENTS_BASE_TEMPLATE.md": "agents/AGENTS_BASE_TEMPLATE.md",
+    "VERSION": "VERSION",
+}
 MANIFEST = ".workflow-ia-managed.json"
 OWNER = "workflow-ia"
 BEGIN = b"<!-- workflow-ia:begin -->"
@@ -238,9 +246,46 @@ def atomic_write(path: Path, content: bytes) -> None:
             temporary.unlink()
 
 
-def install(source: Path, home: Path, codex_home: Path, *, check: bool = False) -> bool:
+def launcher_files(home: Path, codex_home: Path, bin_dir: Path) -> dict[str, bytes]:
+    """Preflight user PATH and generate a launcher independent of the source clone."""
+    if not bin_dir.is_absolute() or ".." in bin_dir.parts or not bin_dir.is_relative_to(home) or bin_dir == home:
+        raise InstallError("CLI bin directory must be an absolute directory below the user home")
+    safe_path(bin_dir)
+    paths = [os.path.normcase(os.path.abspath(part.strip('"'))) for part in os.get_exec_path() if part]
+    if os.path.normcase(str(bin_dir)) not in paths:
+        raise InstallError(f"CLI directory is not on PATH: {bin_dir}. Add it to your user PATH, reopen the terminal, and rerun; no PATH settings are changed by the installer.")
+    name = "workflow-ia.cmd" if os.name == "nt" else "workflow-ia"
+    target = bin_dir / name
+    old = load_manifest(bin_dir)
+    # Unlike documentary legacy adoption, an unowned executable is never replaced.
+    if read_file(target) is not None and name not in old:
+        raise InstallError(f"Unowned CLI command already exists: {target}; choose another --bin-dir or reconcile explicitly")
+    if set(old) - {name}:
+        raise InstallError(f"Unexpected CLI ownership entries in {bin_dir / MANIFEST}")
+    variants = ("workflow-ia", "workflow-ia.exe", "workflow-ia.com", "workflow-ia.bat", "workflow-ia.ps1") if os.name == "nt" else ()
+    for directory in [Path.cwd(), *(Path(p.strip('"')) for p in os.get_exec_path() if p)]:
+        for variant in (name, *variants):
+            candidate = directory / variant
+            if candidate != target and os.path.lexists(candidate):
+                raise InstallError(f"Conflicting CLI command: {candidate}; resolve PATH ambiguity before installing")
+    script = codex_home / "workflow-ia/workflow_ia.py"
+    if os.name == "nt":
+        def quote(path: str) -> str:
+            if any(char in path for char in ('"', '\n', '\r')):
+                raise InstallError("Unsupported quote or newline in launcher path")
+            return '"' + path.replace('%', '%%') + '"'
+        content = f"@echo off\r\nsetlocal DisableDelayedExpansion\r\n{quote(sys.executable)} -B {quote(str(script))} %*\r\nexit /b %errorlevel%\r\n"
+    else:
+        content = f"#!/bin/sh\nexec {shlex.quote(sys.executable)} -B {shlex.quote(str(script))} \"$@\"\n"
+    return {name: content.encode("utf-8")}
+
+
+def install(source: Path, home: Path, codex_home: Path, *, check: bool = False,
+            bin_dir: Path | None = None) -> bool:
     bundles, reviewers, block = load_sources(source)
-    roots = [home / ".agents" / "skills" / name for name in SKILLS] + [codex_home / "agents"]
+    initialization = {target: source_file(source, path) for target, path in INIT_RESOURCES.items()}
+    bin_dir = bin_dir or home / ".local/bin"
+    roots = [home / ".agents" / "skills" / name for name in SKILLS] + [codex_home / "agents", codex_home / "workflow-ia", bin_dir]
     # Overlapping roots could overwrite source files or mix skills and reviewer ownership.
     for i, root in enumerate(roots):
         if root.is_relative_to(source) or source.is_relative_to(root):
@@ -248,6 +293,7 @@ def install(source: Path, home: Path, codex_home: Path, *, check: bool = False) 
         for other in roots[:i]:
             if root.is_relative_to(other) or other.is_relative_to(root):
                 raise InstallError(f"Overlapping installation roots: {root} and {other}")
+    launcher = launcher_files(home, codex_home, bin_dir)
     instructions = codex_home / "AGENTS.md"
     if instructions.is_relative_to(source):
         raise InstallError("CODEX_HOME must not be inside the source repository")
@@ -258,8 +304,10 @@ def install(source: Path, home: Path, codex_home: Path, *, check: bool = False) 
         raise InstallError(f"{override} exists and may mask AGENTS.md. Reconcile the global instructions manually; no files were changed.")
     existing = read_file(instructions)
     updated = merge_instructions(existing or b"", block)
-    plans = [plan_bundle(root, files) for root, files in zip(roots, [*bundles.values(), reviewers])]
+    plans = [plan_bundle(root, files) for root, files in zip(roots, [*bundles.values(), reviewers, initialization, launcher])]
     changes = {path: data for updates, _ in plans for path, data in updates.items()}
+    executable = bin_dir / next(iter(launcher))
+    needs_mode = os.name != "nt" and executable.exists() and not os.access(executable, os.X_OK)
     if existing != updated:
         changes[instructions] = updated
     backup_sets = [
@@ -277,7 +325,9 @@ def install(source: Path, home: Path, codex_home: Path, *, check: bool = False) 
         for path in changes:
             print(f"OUTDATED {path}")
         print("Installation is current." if not changes else "Installation requires an update.")
-        return not changes
+        if needs_mode:
+            print(f"OUTDATED executable permission: {executable}")
+        return not changes and not needs_mode
     for root, backup_root, backup in backup_sets:
         destination = backup_root / uuid.uuid4().hex / root.name
         for path, content in backup.items():
@@ -291,6 +341,12 @@ def install(source: Path, home: Path, codex_home: Path, *, check: bool = False) 
         else:
             atomic_write(path, data)
             print(f"WRITE {path}")
+    if os.name != "nt" and (executable in changes or needs_mode):
+        executable.chmod(executable.stat().st_mode | 0o111)
+    resolved = shutil.which("workflow-ia")
+    if resolved is None or Path(resolved).resolve() != executable.resolve():
+        raise InstallError(f"Installed CLI is not reachable as workflow-ia on PATH: {executable}")
+    print(f"CLI {resolved}")
     print("Installation updated." if changes else "Installation is current; no changes.")
     return True
 
@@ -309,10 +365,11 @@ def user_paths() -> tuple[Path, Path]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="verify installation without writing (exit 1 if outdated)")
+    parser.add_argument("--bin-dir", type=Path, help="user directory already on PATH (default: ~/.local/bin)")
     args = parser.parse_args(argv)
     try:
         home, codex_home = user_paths()
-        return 0 if install(SOURCE_ROOT, home, codex_home, check=args.check) else 1
+        return 0 if install(SOURCE_ROOT, home, codex_home, check=args.check, bin_dir=args.bin_dir) else 1
     except (InstallError, OSError, ValueError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         print("Installation not completed. If an I/O failure occurred during writes, earlier files may have been updated; fix the cause and rerun.", file=sys.stderr)

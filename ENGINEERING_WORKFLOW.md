@@ -25,6 +25,15 @@ installation globale ; les faits et adaptations propres au projet restent dans s
 
 ---
 
+## Initialisation d'un dépôt
+
+Après installation globale, `workflow-ia init` ouvre une session Codex interactive
+depuis le dépôt Git. La [procédure d'initialisation](INIT_WORKFLOW.md) porte le cadrage,
+sa validation explicite puis la création ou l'adaptation des autorités utiles.
+Cette entrée permet de commencer dans le terminal sans discussion ChatGPT préalable ;
+les autorités et la gate de review restent celles du présent workflow.
+L'installation et les limites de la V1 sont décrites dans le [README](README.md#initialiser-un-projet--workflow-ia-init).
+
 ## Modèle de base
 
 Le workflow sépare trois types d’état.
