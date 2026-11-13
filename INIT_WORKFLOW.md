@@ -33,6 +33,55 @@ contraintes, technologies, responsabilités, frontières, invariants, premières
 étapes et critères de validation, selon le besoin. Aucun questionnaire universel ;
 les incertitudes non bloquantes peuvent rester ouvertes.
 
+## Déterminer la langue documentaire
+
+Distinguer la langue de communication avec l'utilisateur de la langue des autorités
+documentaires du projet. La langue de la conversation ne détermine pas celle des
+documents ; celle des guides et templates globaux non plus.
+
+- Pour un dépôt neuf sans convention établie, demander la langue documentaire
+  préférée en proposant **English** par défaut. Cette proposition ne vaut pas choix
+  accepté sans réponse de l'utilisateur.
+- Pour un dépôt existant, rechercher d'abord les conventions explicitement définies
+  dans `AGENTS.md`, les autres autorités et la documentation pertinente. Si aucune
+  règle explicite ne tranche, examiner la cohérence des usages documentaires existants.
+- Lorsqu'une convention cohérente existe, la conserver ou la proposer dans le cadrage
+  sans imposer de question supplémentaire. En l'absence de convention identifiable,
+  demander la préférence en proposant **English** par défaut ; en cas d'ambiguïtés
+  ou de conventions contradictoires, demander une clarification avant de générer.
+
+Inclure la langue retenue et sa source dans le cadrage soumis à validation. Après
+validation, la consigner explicitement dans le `AGENTS.md` du projet pour les futures
+modifications documentaires, même si elle paraît déjà évidente. Appliquer cette langue
+de façon cohérente au contenu rédigé dans `AGENTS.md`, `ARCHITECTURE.md`, `ROADMAP.md`,
+`CODEBASE_MAP.md`, les ADR, contrats et plans de phase retenus. Préserver les noms de
+fichiers, chemins, identifiants techniques et liens utiles.
+
+Les guides et templates globaux de Workflow IA conservent leur langue source ; adapter
+le contenu final généré à la convention du projet. Ne pas traduire automatiquement
+l'ensemble de la documentation d'un dépôt existant : une migration linguistique
+globale exige une décision explicite et un périmètre distinct.
+
+## Traiter la provenance facultative
+
+Les règles globales relatives à `.ai-history/**` s'appliquent indépendamment de la
+présence d'une archive, de l'installation de `prompts_archiver` et de son activation
+effective pour ce dépôt. Ces quatre éléments sont distincts : une archive existante
+ne prouve ni l'installation de l'outil ni son activation actuelle ; l'installation
+ne prouve pas l'activation. Ne jamais supposer l'outil installé ou activé.
+
+Par défaut, ne pas installer ni activer `prompts_archiver`, ne pas créer `.ai-history/`
+et ne pas modifier `.gitignore` au seul motif que l'outil pourrait être utilisé.
+Ne pas ajouter de règles redondantes dans le `AGENTS.md` projet lorsque les règles
+globales suffisent. Ne pas modifier les autorités architecturales ou de planification
+en fonction de l'utilisation de cet outil.
+
+Ne pas introduire de question obligatoire sur cet outil si la réponse ne change pas
+les documents à générer. Si son activation effective pour le dépôt est déterminée de
+manière fiable par une configuration explicite accessible hors de l'archive, elle peut
+être mentionnée dans le récapitulatif d'initialisation, avec sa source. Sinon, ne pas
+déduire un état actif ou inactif ni chercher dans l'archive pour le déterminer.
+
 ## Faire valider avant toute écriture documentaire
 
 Présenter une synthèse reviewable distinguant :

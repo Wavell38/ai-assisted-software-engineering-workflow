@@ -330,6 +330,22 @@ validation humaine explicite, puis génération et review des autorités justifi
 Le [template AGENTS](agents/AGENTS_BASE_TEMPLATE.md) est distribué à ses côtés ; les
 guides et templates documentaires restent dans le skill global existant.
 
+Le cadrage inclut la langue documentaire : sur un dépôt neuf sans convention,
+Codex demande la préférence en proposant **English** par défaut ; sur un dépôt
+existant, il recherche et conserve une convention cohérente, puis clarifie seulement
+si nécessaire. Cette langue, distincte de celle de la conversation, est consignée
+dans le `AGENTS.md` projet et appliquée aux autorités générées. Les ressources
+globales gardent leur langue source ; aucune traduction globale de l'existant
+n'est entreprise sans décision explicite.
+
+`prompts_archiver` est facultatif : l'initialisation ne l'installe ni ne l'active
+par défaut, ne crée pas `.ai-history/`, ne modifie pas `.gitignore` pour un usage
+hypothétique et ne recopie pas les règles globales de provenance dans `AGENTS.md`.
+Les règles globales, une archive existante, l'installation et l'activation effective
+sont des éléments distincts. Seule une activation établie de façon fiable peut être
+mentionnée dans le récapitulatif ; aucune question systématique n'est ajoutée.
+Les règles détaillées restent dans la [procédure d'initialisation](INIT_WORKFLOW.md).
+
 La V1 utilise un agent principal pour l'analyse et la génération. Elle propose un
 périmètre réduit ou `BLOCKED` pour les dépôts trop complexes ou incertains. Les
 reviewers indépendants restent ceux de la gate existante. L'initialisation n'est
@@ -342,10 +358,17 @@ des essais distincts avec un vrai modèle, encore à réaliser :
 - **Dépôt neuf** : initialiser un Git vide, décrire un petit produit, corriger puis
   valider le cadrage. Vérifier l'absence d'écriture avant validation, des autorités
   concises après validation et l'absence de chemins ou de codebase map inventés.
+  Vérifier la question de langue avec English proposé par défaut, choisir une
+  langue différente de la conversation et contrôler sa persistance dans `AGENTS.md`
+  ainsi que son application aux autorités générées, sans `prompts_archiver` installé.
 - **Dépôt existant léger** : utiliser une copie de travail avec code et règles
   personnelles, demander l'intégration, puis vérifier l'analyse étayée, le traitement
   des contradictions, la validation avant adaptation et la préservation du contenu
   hors périmètre. Refuser un premier cadrage pour vérifier l'attente effective.
+  Vérifier le respect d'une langue documentaire établie sans question superflue,
+  puis la clarification de conventions contradictoires, sans traduction globale.
+  Avec et sans archive préexistante, vérifier l'absence d'activation implicite,
+  de création d'archive, de changement de `.gitignore` et de règles globales dupliquées.
 
 ### Migration des projets existants
 
@@ -381,6 +404,9 @@ espaces, l'autonomie après suppression du clone source, la configuration de ses
 les échanges continus et les erreurs, sans appel réel de modèle. La préservation des
 documents par le lanceur est déterministe ; le respect du cadrage par Codex relève
 des essais réels ci-dessus.
+Ils vérifient aussi la présence et le routage des consignes de langue et de provenance
+facultative dans les ressources installées et injectées, sans démontrer leur bonne
+application par un vrai modèle.
 
 ## Version du workflow
 

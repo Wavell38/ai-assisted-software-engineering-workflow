@@ -3,6 +3,8 @@
 > Authoring reference for ChatGPT, Codex, or a human drafting a project's `AGENTS.md`.
 > Adapt to the actual repository; remove examples, placeholders, and irrelevant sections.
 > Do not invent architectural decisions, commands, or project conventions.
+> Write the final project instructions in its selected documentation language,
+> including headings; this template's source language does not determine that choice.
 > When Workflow IA is installed globally, its instructions already cover the shared skills,
 > Git operations, recommended commit messages, and `.ai-history/**`; do not duplicate them.
 > If a repository must also work without that installation, document its needs explicitly.
@@ -19,7 +21,9 @@ within a subdirectory. Add nested `AGENTS.md` files only for genuinely distinct 
 - Purpose and scope: `<what this repository does>`.
 - Supported languages, runtimes, and toolchains: `<versions and sources of truth>`.
 - Relevant entry points / subsystems: `<paths or links when helpful>`.
-- Documentation language and conventions: `<only if not already evident>`.
+- Documentation language: `<selected documentation language>`; apply it consistently
+  to future documentation changes. The conversation language may differ.
+- Other documentation conventions: `<project-specific conventions, if any>`.
 
 ## Architecture and project authorities
 

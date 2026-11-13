@@ -1,4 +1,7 @@
-"""Deterministic CLI acceptance; fake Codex never calls a model or personal state."""
+"""Deterministic CLI acceptance; fake Codex never calls a model or personal state.
+
+Instruction checks establish presence and routing, not compliance by a real model.
+"""
 
 import contextlib
 import importlib.util
@@ -70,6 +73,12 @@ class InitTests(unittest.TestCase):
     def capture(self):
         return json.loads((self.base / "capture.json").read_text(encoding="utf-8"))
 
+    def injected_instructions(self):
+        args = self.capture()["args"]
+        configs = [args[i+1] for i, arg in enumerate(args[:-1]) if arg == "--config"]
+        injected = next(x.split("=", 1)[1] for x in configs if x.startswith("developer_instructions="))
+        return json.loads(injected)
+
     def test_acceptance_new_and_light_existing_repositories(self):
         self.prepare()
         # The installed command must survive removal of its original source clone.
@@ -94,11 +103,91 @@ class InitTests(unittest.TestCase):
                 self.assertEqual(Path(args[args.index("--cd") + 1]), self.project)
                 configs = [args[i+1] for i, arg in enumerate(args[:-1]) if arg == "--config"]
                 self.assertIn('model_reasoning_effort="xhigh"', configs)
-                injected = next(x.split("=", 1)[1] for x in configs if x.startswith("developer_instructions="))
-                self.assertEqual(json.loads(injected), (self.codex / "workflow-ia/INIT_WORKFLOW.md").read_text(encoding="utf-8"))
+                self.assertEqual(self.injected_instructions(), (self.codex / "workflow-ia/INIT_WORKFLOW.md").read_text(encoding="utf-8"))
                 self.assertIn(str(self.codex / "workflow-ia/AGENTS_BASE_TEMPLATE.md"), args[-1])
                 self.assertEqual({p: p.read_bytes() for p in self.project.rglob("*") if p.is_file()}, before)
                 self.assertEqual((self.codex / "config.toml").read_bytes(), b"# personal config must remain unchanged\n")
+
+    def test_language_selection_instructions_reach_installed_session(self):
+        self.prepare()
+        result = self.invoke()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        instructions = " ".join(self.injected_instructions().split())
+        # These are checks of the supplied instructions, not simulated model decisions.
+        for rule in (
+            "Pour un dépôt neuf sans convention établie, demander la langue documentaire",
+            "en proposant **English** par défaut",
+            "ne vaut pas choix accepté sans réponse de l'utilisateur",
+            "Pour un dépôt existant, rechercher d'abord les conventions explicitement définies",
+            "examiner la cohérence des usages documentaires existants",
+            "la conserver ou la proposer dans le cadrage sans imposer de question supplémentaire",
+            "En l'absence de convention identifiable, demander la préférence",
+            "en cas d'ambiguïtés ou de conventions contradictoires, demander une clarification",
+            "Distinguer la langue de communication avec l'utilisateur de la langue des autorités",
+            "Inclure la langue retenue et sa source dans le cadrage soumis à validation",
+        ):
+            with self.subTest(rule=rule):
+                self.assertIn(rule, instructions)
+
+    def test_language_persistence_and_generation_instructions_are_routed(self):
+        self.prepare(existing=True)
+        result = self.invoke()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        instructions = " ".join(self.injected_instructions().split())
+        template = " ".join((self.codex / "workflow-ia/AGENTS_BASE_TEMPLATE.md").read_text(encoding="utf-8").split())
+        self.assertIn(str(self.codex / "workflow-ia/AGENTS_BASE_TEMPLATE.md"), self.capture()["args"][-1])
+        self.assertIn("la consigner explicitement dans le `AGENTS.md` du projet pour les futures modifications documentaires", instructions)
+        self.assertIn("même si elle paraît déjà évidente", instructions)
+        self.assertIn("Documentation language: `<selected documentation language>`", template)
+        self.assertIn("apply it consistently to future documentation changes", template)
+        self.assertIn("The conversation language may differ", template)
+        self.assertIn("including headings; this template's source language does not determine that choice", template)
+        for authority in ("`AGENTS.md`", "`ARCHITECTURE.md`", "`ROADMAP.md`", "`CODEBASE_MAP.md`", "ADR", "contrats", "plans de phase"):
+            with self.subTest(authority=authority):
+                self.assertIn(authority, instructions)
+        self.assertIn("adapter le contenu final généré à la convention du projet", instructions)
+        self.assertIn("Ne pas traduire automatiquement l'ensemble de la documentation", instructions)
+        self.assertIn("une migration linguistique globale exige une décision explicite", instructions)
+
+    def test_optional_provenance_instructions_and_launcher_preservation(self):
+        self.prepare(existing=True)
+        self.write(self.project / ".gitignore", b"# Personal exclusions\n/build/\n")
+        self.write(self.project / "ROADMAP.md", b"# Existing roadmap\n")
+        for archive_exists in (False, True):
+            with self.subTest(archive_exists=archive_exists):
+                if archive_exists:
+                    self.write(self.project / ".ai-history/legacy.md", b"legacy provenance fixture\n")
+                before = {p: p.read_bytes() for p in self.project.rglob("*") if p.is_file()}
+                result = self.invoke()
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual((self.project / ".ai-history").exists(), archive_exists)
+                self.assertEqual({p: p.read_bytes() for p in self.project.rglob("*") if p.is_file()}, before)
+                instructions = " ".join(self.injected_instructions().split())
+                for rule in (
+                    "règles globales relatives à `.ai-history/**`",
+                    "présence d'une archive, de l'installation de `prompts_archiver` et de son activation effective pour ce dépôt",
+                    "Ces quatre éléments sont distincts",
+                    "une archive existante ne prouve ni l'installation de l'outil ni son activation actuelle",
+                    "l'installation ne prouve pas l'activation",
+                    "Ne jamais supposer l'outil installé ou activé",
+                    "ne pas installer ni activer `prompts_archiver`, ne pas créer `.ai-history/`",
+                    "ne pas modifier `.gitignore` au seul motif que l'outil pourrait être utilisé",
+                    "Ne pas ajouter de règles redondantes dans le `AGENTS.md` projet lorsque les règles globales suffisent",
+                    "Ne pas modifier les autorités architecturales ou de planification",
+                    "Ne pas introduire de question obligatoire sur cet outil",
+                    "configuration explicite accessible hors de l'archive",
+                    "ne pas déduire un état actif ou inactif ni chercher dans l'archive",
+                ):
+                    with self.subTest(rule=rule):
+                        self.assertIn(rule, instructions)
+        template = (self.codex / "workflow-ia/AGENTS_BASE_TEMPLATE.md").read_text(encoding="utf-8")
+        self.assertIn("do not duplicate them", template)
+        self.assertIn("Do not duplicate global `.ai-history/**` instructions", template)
+        global_instructions = self.instructions.read_text(encoding="utf-8")
+        history_rules = global_instructions.split("## AI History\n", 1)[1].split("<!-- workflow-ia:end -->", 1)[0]
+        for rule in history_rules.splitlines():
+            if rule.startswith("- "):
+                self.assertNotIn(rule[2:], template)
 
     def test_continuous_terminal_streams_and_exit_status(self):
         self.prepare(existing=True)
