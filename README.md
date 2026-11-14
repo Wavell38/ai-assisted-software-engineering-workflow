@@ -408,6 +408,16 @@ Ils vérifient aussi la présence et le routage des consignes de langue et de pr
 facultative dans les ressources installées et injectées, sans démontrer leur bonne
 application par un vrai modèle.
 
+Les contrôles de preuve de non-régression vérifient les règles distribuées, les deux
+copies du profil `tests_reviewer`, la mise à jour et l'idempotence. Ils ne démontrent
+pas les décisions effectives d'un agent. Pour qualifier celles-ci avec un modèle réel,
+utiliser des corrections synthétiques : régression de reprise masquée par un mock
+toujours réussi, correction locale à faible risque avec preuve suffisante, validation
+obligatoire indisponible sans alternative suffisante. Examiner la sélection du reviewer,
+la détection des lacunes et le refus de `PASSED` sans preuve nécessaire selon la
+[procédure](review/review-and-remediate/SKILL.md), sans assimiler cet exercice à une
+qualification exhaustive des futurs runs.
+
 ## Version du workflow
 
 Le fichier [`VERSION`](VERSION) contient la version du corpus source sur une seule ligne.

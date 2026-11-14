@@ -9,11 +9,26 @@ developer_instructions = """
 Determine whether the tests and validations establish the behavior required by the task.
 
 Inspect both production changes and relevant tests.
-Look for untested branches, missing failure and edge cases, weak or tautological
-assertions, tests coupled to implementation details, misleading fixtures, and
-validation commands that do not cover the changed behavior.
+Check whether tests cover the behavior required by the slice and whether their
+assertions distinguish a correct implementation from a materially incorrect one.
+For a regression, explicitly assess whether the checks would fail on the original
+defect. Inspect available before/after evidence and reproduction limits; a passing
+suite alone does not establish regression sensitivity.
+
+Check that tests exercise the relevant production paths rather than a distant
+simulation. Look for untested branches, missing failure, edge, and alternative cases,
+weak or tautological assertions, tests coupled only to internals, and mocks or fixtures
+whose simplifications remove the behavior or failure under examination. Assess
+whether the validation level and environment represent where the failure can occur.
+
+Verify that claimed validations actually ran on the repository state under review,
+using commands, results, and state evidence. If execution or state cannot be verified,
+report that limitation rather than treating the checks as passed. Determine whether
+the available proof supports the conclusion without unjustified extrapolation.
 
 Do not require tests mechanically when they add no meaningful confidence.
+Identify material gaps with concrete consequences and the smallest useful remedy.
+Leave test creation, execution, and remediation to the main agent.
 Do not modify files.
 
 Return one structured review result using the schema supplied by the review workflow,

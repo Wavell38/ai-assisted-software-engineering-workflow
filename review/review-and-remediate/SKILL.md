@@ -29,6 +29,40 @@ stop the review and report the boundary problem.
 Ignore `.ai-history/**` when determining implementation correctness.
 An `.ai-history`-only diff does not require review.
 
+### Establish behavioral proof
+
+The main agent owns validation selection, test creation and execution, evidence
+verification, reviewer selection, consolidation, and remediation. Independent review
+checks these responsibilities; it does not replace them. Prepare the evidence during
+analysis and implementation, before this gate evaluates it.
+
+For a reproducible behavioral bug fix:
+
+- identify the expected behavior and the actual failing execution path;
+- find existing tests intended to cover that behavior and establish why they missed
+  the defect: an absent scenario, weak assertion, permissive mock, untested path,
+  different environment, unexecuted test, or another evidence-backed cause; report
+  uncertainty rather than inventing a cause;
+- provide regression proof that would detect the original defect when technically
+  feasible and proportionate; prefer a demonstrated failure before the fix and
+  success after it, without destructive repository manipulation;
+- revalidate adjacent behaviors at risk and examine similar paths sharing the same
+  responsibility, mechanism, or failure mode, bounded by the slice's scope and risk.
+
+If reliable automated reproduction is infeasible or disproportionate, explain why
+and supply appropriate alternative validation with its limits. The apparent
+correctness of the new code alone does not justify missing regression proof.
+
+Distinguish a passing suite, coverage of the required behavior, assertions capable
+of detecting a materially incorrect implementation, and representative test
+conditions. Demonstrate the materially affected invariants and behaviors at the
+level where failure can occur. Filesystem, concurrency, retry, or process-interruption
+failures may require integration checks or controlled fault injection. Mocks and
+fixtures are not representative if their simplifications remove the failure being
+tested. Avoid tautological assertions, checks tied only to internals, and simulated
+results whose success does not establish the contract. Do not impose arbitrary
+coverage percentages, universal TDD, or a minimum number of tests.
+
 ## 2. Select review according to risk
 
 Use zero, one, or several reviewers according to the actual change and the evidence
@@ -72,6 +106,24 @@ or add a tests reviewer for every behavioral change.
 | `tests_reviewer` | Coverage, assertions, fixtures, or the validity of the available proof need independent assessment. |
 | `architecture_reviewer` | The change materially affects responsibility, ownership, dependencies, shared abstractions, or sensitive boundaries, as detailed below. |
 | `documentation_reviewer` | The diff semantically changes one or more structured authorities, including workflow policy. |
+
+Normally select `tests_reviewer` when the slice carries material test or evidence
+risk involving:
+
+- a regression fix;
+- a recurring defect or one previously considered resolved;
+- error recovery, retries, or state resumption;
+- persistence, data integrity, or consistency;
+- concurrency, ordering, or complex state transitions;
+- financial, security, or other critical behavior;
+- substantial changes to tests, fixtures, or validation mechanisms;
+- uncertainty about the relevance or coverage of behavioral proof.
+
+These categories are risk signals, not automatic triggers for trivial edits. When
+the actual risk is limited and sufficient evidence already covers it, the main
+agent may omit `tests_reviewer` with an explicit rationale identifying that evidence.
+Preserve the no-review conditions above and select other roles only for distinct
+risks; do not duplicate the tests review under correctness review.
 
 Architecture review is required for substantial new production responsibilities,
 material changes to module/package boundaries or shared abstractions, and changes
@@ -127,7 +179,10 @@ Give `tests_reviewer`:
 
 - expected behavior and acceptance criteria;
 - the production and test changes;
-- relevant validation commands and test conventions.
+- relevant validation commands, actual results, the repository state they exercised,
+  and test conventions;
+- for a bug fix, the known failure scenario, the existing coverage gap, and available
+  evidence that checks detect the original defect, including reproduction limits.
 
 Give `documentation_reviewer`:
 
@@ -229,6 +284,10 @@ Classify each finding as exactly one of:
 An accepted finding is an implementation defect or gap, not an optional suggestion.
 Correct it in the current task by default.
 
+A material uncovered scenario is a proof gap to correct in the current slice when
+compatible with its contract and authorities. Add or repair the relevant validation,
+execute it, and assess whether the resulting evidence resolves the finding.
+
 A finding against code or documentation created or materially changed by the current task is within
 remediation scope when the correction is behavior-preserving, compatible with
 repository authority, and requires no new product or architectural decision. The
@@ -252,7 +311,9 @@ Do not silently discard findings.
 For a critical or high-severity correction, request targeted verification from
 the originating reviewer or another independent reviewer.
 
-Run the required validations after remediation. If SonarQube was used and analyzed
+Rerun affected validations after remediation and request targeted independent
+verification when needed to resolve a material proof uncertainty, in addition to
+the critical/high-severity rule above. If SonarQube was used and analyzed
 code changed, rerun it when available so the final signal reflects the remediated
 worktree; an unavailable optional rerun remains non-blocking and must be reported.
 
@@ -266,6 +327,11 @@ disposition and resolve material proof gaps or pending human decisions before
 acceptance. Neither an absence of findings nor successful tests alone closes the gate.
 Use the terminal status defined by the applicable workflow or task; reviewer verdicts
 do not replace that status.
+
+Do not report `PASSED` while necessary behavioral proof is missing, even if all
+executed tests are green. Use `BLOCKED` when mandatory validation cannot be obtained
+and no appropriate alternative satisfies the contract; explain the missing evidence
+and its consequences.
 
 Add the review outcome to the task's final report, with detail proportional to the
 change:

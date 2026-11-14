@@ -54,6 +54,13 @@ au lieu de la convertir en contrainte arbitraire.
 
 Le prompt doit principalement décrire le **delta propre à la tranche**. Ne répète pas une règle ou une décision déjà autoritative et directement récupérable dans les sources ; référence plutôt explicitement l'autorité pertinente lorsque Codex doit la consulter.
 
+Pour une correction de bug, préciser le comportement attendu, le scénario de
+défaillance connu, les invariants à préserver et la preuve nécessaire pour démontrer
+la correction. Distinguer les faits reproduits des hypothèses encore à vérifier.
+Référencer les [exigences de preuve comportementale](../review/review-and-remediate/SKILL.md#establish-behavioral-proof)
+pour la procédure de non-régression ; ne pas ajouter de formulaire de tests à toutes
+les tranches.
+
 Conserve explicitement toute information dont la suppression obligerait Codex à inférer une décision propre à la tranche, notamment :
 
 * frontières architecturales nouvelles ou spécifiques à la tranche ;

@@ -34,7 +34,13 @@ class InstallationTests(unittest.TestCase):
         self.review = self.skills / installer.SKILLS[1]
         self.instructions = self.codex / "AGENTS.md"
         self.bin = self.home / ".local/bin"
-        self.path_env = patch.dict(os.environ, {"PATH": str(self.bin) + os.pathsep + os.environ.get("PATH", "")})
+        # Retain system tools while excluding personal workflow launchers from
+        # inherited PATH. Conflict tests explicitly add their own temporary bins.
+        commands = ("workflow-ia", "workflow-ia.cmd", "workflow-ia.exe",
+                    "workflow-ia.com", "workflow-ia.bat", "workflow-ia.ps1")
+        inherited = [part for part in os.get_exec_path() if part and not any(
+            os.path.lexists(Path(part.strip('"')) / name) for name in commands)]
+        self.path_env = patch.dict(os.environ, {"PATH": os.pathsep.join([str(self.bin), *inherited])})
         self.path_env.start()
         self.addCleanup(self.path_env.stop)
         # Copy only distributable sources, never local Codex state or the Git database.
@@ -121,6 +127,177 @@ class InstallationTests(unittest.TestCase):
             ):
                 with self.subTest(root=root, rule=rule):
                     self.assertIn(rule, instructions)
+
+    def test_inherited_workflow_commands_do_not_contaminate_test_environment(self):
+        # Exercise the real installer with a host-like PATH, without reading or
+        # modifying an actual personal installation. Both test classes use setUp.
+        variants = ("workflow-ia", "workflow-ia.cmd", "workflow-ia.exe",
+                    "workflow-ia.com", "workflow-ia.bat", "workflow-ia.ps1") if os.name == "nt" else ("workflow-ia",)
+        for name in variants:
+            with self.subTest(command=name):
+                other = self.base / name / "personal bin"
+                command = other / name
+                self.write(command, b"personal command must remain untouched")
+                before = (command.read_bytes(), command.stat().st_mtime_ns)
+                with patch.dict(os.environ, {"PATH": str(other) + os.pathsep + os.environ["PATH"]}):
+                    fixture = InstallationTests("test_first_install_and_complete_resources")
+                    try:
+                        fixture.setUp()
+                        fixture.run_install()
+                        self.assertNotIn(str(other), os.get_exec_path())
+                        self.assertIsNotNone(shutil.which("git"))
+                        self.assertTrue(fixture.run_install(check=True))
+                    finally:
+                        fixture.doCleanups()
+                self.assertEqual((command.read_bytes(), command.stat().st_mtime_ns), before)
+
+    def test_behavioral_proof_requirements_reach_installed_gate(self):
+        self.run_install()
+        source = self.source / "review/review-and-remediate/SKILL.md"
+        installed = self.review / "SKILL.md"
+        self.assertEqual(installed.read_bytes(), source.read_bytes())
+        proof = " ".join(installed.read_text(encoding="utf-8").split())
+        proof = proof.split("### Establish behavioral proof", 1)[1].split("## 2.", 1)[0]
+        # These are distribution/wording contracts, not a simulation of agent behavior.
+        for rule in (
+            "identify the expected behavior and the actual failing execution path",
+            "find existing tests intended to cover that behavior and establish why they missed the defect",
+            "report uncertainty rather than inventing a cause",
+            "regression proof that would detect the original defect",
+            "prefer a demonstrated failure before the fix and success after it",
+            "without destructive repository manipulation",
+            "revalidate adjacent behaviors at risk",
+            "similar paths sharing the same responsibility, mechanism, or failure mode",
+            "bounded by the slice's scope and risk",
+            "explain why and supply appropriate alternative validation with its limits",
+            "correctness of the new code alone does not justify missing regression proof",
+            "Distinguish a passing suite, coverage of the required behavior, assertions capable of detecting a materially incorrect implementation, and representative test conditions",
+            "integration checks or controlled fault injection",
+            "simplifications remove the failure being tested",
+            "Do not impose arbitrary coverage percentages, universal TDD, or a minimum number of tests",
+        ):
+            with self.subTest(rule=rule):
+                self.assertIn(rule, proof)
+
+    def test_tests_review_selection_preserves_risk_based_exceptions(self):
+        self.run_install()
+        policy = " ".join((self.review / "SKILL.md").read_text(encoding="utf-8").split())
+        selection = policy.split("## 2. Select review according to risk", 1)[1].split("### Deterministic analysis", 1)[0]
+        for rule in (
+            "A small diff or successful tests alone do not establish low risk",
+            "### When no reviewer is needed",
+            "no material uncertainty remains",
+            "no applicable authority requires independent review",
+            "do not automatically pair contract and correctness or add a tests reviewer for every behavioral change",
+            "Normally select `tests_reviewer` when the slice carries material test or evidence risk",
+            "a regression fix",
+            "a recurring defect or one previously considered resolved",
+            "error recovery, retries, or state resumption",
+            "persistence, data integrity, or consistency",
+            "concurrency, ordering, or complex state transitions",
+            "financial, security, or other critical behavior",
+            "substantial changes to tests, fixtures, or validation mechanisms",
+            "uncertainty about the relevance or coverage of behavioral proof",
+            "not automatic triggers for trivial edits",
+            "may omit `tests_reviewer` with an explicit rationale identifying that evidence",
+            "select other roles only for distinct risks",
+            "Use exactly one documentation reviewer",
+        ):
+            with self.subTest(rule=rule):
+                self.assertIn(rule, selection)
+
+    def test_missing_proof_routes_to_remediation_or_blocked(self):
+        self.run_install()
+        policy = " ".join((self.review / "SKILL.md").read_text(encoding="utf-8").split())
+        for rule in (
+            "The main agent owns validation selection, test creation and execution, evidence verification, reviewer selection, consolidation, and remediation",
+            "actual results, the repository state they exercised",
+            "the known failure scenario, the existing coverage gap",
+            "A material uncovered scenario is a proof gap to correct in the current slice",
+            "compatible with its contract and authorities",
+            "Rerun affected validations after remediation and request targeted independent verification when needed",
+            "Do not report `PASSED` while necessary behavioral proof is missing",
+            "Use `BLOCKED` when mandatory validation cannot be obtained and no appropriate alternative satisfies the contract",
+        ):
+            with self.subTest(rule=rule):
+                self.assertIn(rule, policy)
+
+    def test_tests_reviewer_proof_checks_reach_both_installed_profiles(self):
+        self.run_install()
+        for root in (self.review, self.codex / "agents"):
+            with self.subTest(root=root):
+                target = root / "tests-reviewer.toml"
+                self.assertEqual(target.read_bytes(), (self.source / "review/review-and-remediate/tests-reviewer.toml").read_bytes())
+                profile = tomllib.loads(target.read_text(encoding="utf-8"))
+                for key, value in {"name": "tests_reviewer", "model": "gpt-6.1-sol",
+                                   "model_reasoning_effort": "high", "sandbox_mode": "read-only"}.items():
+                    self.assertEqual(profile[key], value)
+                instructions = " ".join(profile["developer_instructions"].split())
+                for rule in (
+                    "tests cover the behavior required by the slice",
+                    "assertions distinguish a correct implementation from a materially incorrect one",
+                    "For a regression, explicitly assess whether the checks would fail on the original defect",
+                    "before/after evidence and reproduction limits",
+                    "tests exercise the relevant production paths",
+                    "missing failure, edge, and alternative cases",
+                    "simplifications remove the behavior or failure under examination",
+                    "claimed validations actually ran on the repository state under review",
+                    "report that limitation rather than treating the checks as passed",
+                    "without unjustified extrapolation",
+                    "Do not require tests mechanically when they add no meaningful confidence",
+                    "Leave test creation, execution, and remediation to the main agent",
+                    "Do not modify files",
+                    "using the schema supplied by the review workflow",
+                ):
+                    with self.subTest(rule=rule):
+                        self.assertIn(rule, instructions)
+
+    def test_regression_policy_upgrade_is_complete_and_idempotent(self):
+        # A synthetic older managed corpus exercises updates, not cognitive compliance.
+        gate = self.source / "review/review-and-remediate/SKILL.md"
+        reviewer = self.source / "review/review-and-remediate/tests-reviewer.toml"
+        version = self.source / "VERSION"
+        current = {path: path.read_bytes() for path in (gate, reviewer, version)}
+        old_gate = current[gate].split(b"### Establish behavioral proof", 1)[0]
+        old_gate += b"## 2." + current[gate].split(b"## 2.", 1)[1]
+        self.write(gate, old_gate)
+        metadata = current[reviewer].split(b'developer_instructions = """', 1)[0]
+        self.write(reviewer, metadata + b'developer_instructions = """Inspect tests. Do not modify files."""\n')
+        self.write(version, b"0.0.0\n")
+        self.run_install()
+        self.assertNotEqual((self.review / "SKILL.md").read_bytes(), current[gate])
+        for root in (self.review, self.codex / "agents"):
+            self.assertNotEqual((root / "tests-reviewer.toml").read_bytes(), current[reviewer])
+        personal = self.instructions.read_bytes() + b"\n# Personal validation rule\n"
+        self.write(self.instructions, personal)
+        for path, content in current.items():
+            self.write(path, content)
+        before = self.snapshot()
+        self.assertFalse(self.run_install(check=True))
+        self.assertEqual(self.snapshot(), before)
+        self.run_install()
+        self.assertEqual((self.review / "SKILL.md").read_bytes(), current[gate])
+        for root in (self.review, self.codex / "agents"):
+            self.assertEqual((root / "tests-reviewer.toml").read_bytes(), current[reviewer])
+        for root in (self.doc, self.review, self.codex / "workflow-ia"):
+            self.assertEqual((root / "VERSION").read_bytes(), current[version])
+        self.assertEqual(self.instructions.read_bytes(), personal)
+        before = self.snapshot()
+        self.assertTrue(self.run_install(check=True))
+        self.run_install()
+        self.assertEqual(self.snapshot(), before)
+
+    def test_bug_prompt_and_workflow_route_to_regression_proof(self):
+        # These two guides are repository sources, not globally installed resources.
+        route = "review/review-and-remediate/SKILL.md#establish-behavioral-proof"
+        guide = (REPO / "prompts/CODEX_PROMPT_GUIDE.md").read_text(encoding="utf-8")
+        workflow = (REPO / "ENGINEERING_WORKFLOW.md").read_text(encoding="utf-8")
+        self.assertIn(f"](../{route})", guide)
+        self.assertIn(f"]({route})", workflow)
+        self.assertIn("### Establish behavioral proof", (self.source / route.split("#")[0]).read_text(encoding="utf-8"))
+        prompt = " ".join(guide.split())
+        self.assertIn("le comportement attendu, le scénario de défaillance connu, les invariants à préserver et la preuve nécessaire", prompt)
+        self.assertIn("ne pas ajouter de formulaire de tests à toutes les tranches", prompt)
 
     def test_second_install_does_not_change_files_or_mtimes(self):
         self.run_install()

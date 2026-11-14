@@ -360,6 +360,11 @@ Selon le projet, cela peut inclure :
 
 La validation doit démontrer le contrat de la tranche, et pas simplement produire un statut vert.
 
+Pour une correction de défaut comportemental, préparer la preuve dès l'analyse et
+l'implémentation selon les [exigences de preuve comportementale](review/review-and-remediate/SKILL.md#establish-behavioral-proof).
+La procédure précise la sensibilité au défaut initial, la représentativité des
+vérifications et les alternatives à une reproduction automatisée.
+
 Si la validation révèle un blocker impossible à résoudre dans la tranche, le run peut se terminer en `BLOCKED`.
 
 Sinon, il passe directement à la revue.
