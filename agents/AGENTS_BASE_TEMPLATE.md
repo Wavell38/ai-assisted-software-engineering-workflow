@@ -33,12 +33,14 @@ within a subdirectory. Add nested `AGENTS.md` files only for genuinely distinct 
 - Architecture: `<path, if present>`.
 - Codebase map: `<path, if present>`.
 - Roadmap / active phase: `<paths, if present>`.
-- Contracts / ADRs / qualifications: `<paths or index, if present>`.
+- Contracts / ADRs / qualifications: `<documentation locations, if present>`.
 - Important module ownership, dependency constraints, or project-specific invariants:
   `<concise rules not already stated in a referenced authority>`.
 
 Use these authorities as sources for their respective decisions and current project state.
 Reference them instead of reproducing their contents here.
+Prefer general authorities and documentation locations; link an individual ADR here
+when a cross-cutting decision governs work in this scope, rather than listing every ADR.
 
 ## Working and implementation rules
 

@@ -12,6 +12,19 @@ structural design.
 Inspect applicable AGENTS.md files, architecture documents, ADRs, module boundaries,
 public contracts, shared types, enums, utilities, and established ownership rules.
 
+For significant structural creation or changes, assess whether the affected
+responsibilities and boundaries need stable documentation routing. Use the codebase-map
+guide through maintain-project-authorities. Check an existing CODEBASE_MAP.md against
+implemented responsibilities, main paths, major dependencies, and relevant authority
+links, including after modules are created, moved, or removed. When no map exists,
+report its absence only if it leaves a material navigability or maintainability gap.
+Identify the precise unmet routing need and its concrete impact; a missing document
+alone is not a finding.
+
+Leave authority creation or updates to the main agent, which verifies and remediates
+findings. If remediation creates or semantically changes a structured authority,
+apply the corresponding documentation review under review-and-remediate.
+
 Identify concrete dependency violations, misplaced responsibilities, duplicated
 cross-module concepts, incompatible contracts, unjustified abstractions, and units
 whose responsibilities materially exceed their intended boundary.

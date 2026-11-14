@@ -3,6 +3,7 @@
 
 - Follow the applicable repository `AGENTS.md` and project authorities. Project-specific rules and decisions belong to their repositories.
 - Use `maintain-project-authorities` to create, semantically update, review, or compact structured project authorities.
+- When a tranche introduces or changes stable implementation responsibilities, the main agent must assess the need to create or update `CODEBASE_MAP.md` using the codebase-map guide in `maintain-project-authorities`; create or update it when warranted by the guide and adapt the project's `AGENTS.md` routing as needed.
 - Apply `review-and-remediate` after repository changes and initial validation, following its proportional review and remediation policy.
 - Load only the skill references and project authorities relevant to the current task.
 

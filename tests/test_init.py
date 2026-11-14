@@ -108,6 +108,70 @@ class InitTests(unittest.TestCase):
                 self.assertEqual({p: p.read_bytes() for p in self.project.rglob("*") if p.is_file()}, before)
                 self.assertEqual((self.codex / "config.toml").read_bytes(), b"# personal config must remain unchanged\n")
 
+    def test_new_project_architecture_instructions_reach_installed_session(self):
+        self.prepare()
+        result = self.invoke()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        instructions = " ".join(self.injected_instructions().split())
+        # Presence in the injected procedure is evidence of routing, not model behavior.
+        for rule in (
+            "identifier le modèle le plus approprié aux besoins et contraintes établis",
+            "Présenter une recommandation par défaut avec les raisons déterminantes",
+            "les alternatives réellement pertinentes et leurs principaux compromis",
+            "Permettre à l'utilisateur d'accepter ou de modifier cette proposition",
+            "ne pas lui demander systématiquement de choisir un modèle technique abstrait",
+            "un monolithe modulaire est souvent pertinent si plusieurs responsabilités stables sont identifiées",
+            "Un petit utilitaire ou un projet peu complexe peut justifier une structure plus simple",
+            "Cette préférence n'est ni universelle ni une exigence implicite",
+            "ROS 2, embarqué, ECS, événementiel ou services distribués restent sélectionnables",
+            "responsabilités, frontières et directions de dépendance importantes, au-delà du nom du modèle",
+            "Distinguer architecture de déploiement, organisation interne du code et organisation des agents IA",
+            "Ne pas imposer de couches, interfaces, packages, sous-agents ou `AGENTS.md` imbriqués sans nécessité démontrée",
+            "**Attendre la réponse humaine avant de créer, modifier ou supprimer un document**",
+            "Consigner la décision architecturale acceptée dans `ARCHITECTURE.md`",
+            "ne pas inventer de modules physiques, de chemins ou de codebase map",
+        ):
+            with self.subTest(rule=rule):
+                self.assertIn(rule, instructions)
+        self.assertFalse((self.project / "CODEBASE_MAP.md").exists())
+
+    def test_existing_project_architecture_instructions_are_routed(self):
+        self.prepare(existing=True)
+        architecture = (self.project / "ARCHITECTURE.md").read_bytes()
+        result = self.invoke()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual((self.project / "ARCHITECTURE.md").read_bytes(), architecture)
+        instructions = " ".join(self.injected_instructions().split())
+        for rule in (
+            "identifier d'abord les contraintes, conventions, frontières et responsabilités établies dans les autorités et le code",
+            "Préserver l'architecture existante lorsqu'elle est acceptée et suffisamment identifiable",
+            "Toute migration ou modification significative du modèle exige une proposition explicite, justifiée et validée",
+            "ne jamais l'introduire silencieusement pendant l'initialisation",
+        ):
+            with self.subTest(rule=rule):
+                self.assertIn(rule, instructions)
+
+    def test_contextual_adr_routing_instructions_are_distributed(self):
+        self.prepare()
+        result = self.invoke()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        instructions = " ".join(self.injected_instructions().split())
+        for rule in (
+            "`AGENTS.md` référence principalement les autorités générales et les emplacements documentaires",
+            "`ARCHITECTURE.md` référence les ADR pertinents pour ses décisions",
+            "`CODEBASE_MAP.md` référence les ADR ou contrats pertinents pour les responsabilités qu'il route",
+            "Chaque ADR conserve sa décision et sa justification dans son propre fichier",
+            "Éviter l'énumération systématique des ADR individuels dans `AGENTS.md`",
+            "un lien direct reste utile lorsqu'une décision transversale gouverne les travaux concernés",
+            "Ne pas créer d'index ADR supplémentaire sans besoin concret",
+        ):
+            with self.subTest(rule=rule):
+                self.assertIn(rule, instructions)
+        template = " ".join((self.codex / "workflow-ia/AGENTS_BASE_TEMPLATE.md").read_text(encoding="utf-8").split())
+        self.assertIn("Contracts / ADRs / qualifications: `<documentation locations, if present>`", template)
+        self.assertIn("link an individual ADR here when a cross-cutting decision governs work in this scope", template)
+        self.assertIn("rather than listing every ADR", template)
+
     def test_language_selection_instructions_reach_installed_session(self):
         self.prepare()
         result = self.invoke()

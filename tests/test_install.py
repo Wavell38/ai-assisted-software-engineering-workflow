@@ -83,6 +83,45 @@ class InstallationTests(unittest.TestCase):
         self.assertEqual(self.instructions.read_bytes(), expected)
         self.assertTrue(self.run_install(check=True))
 
+    def test_proactive_codebase_map_trigger_routes_to_bundled_guide(self):
+        self.run_install()
+        instructions = " ".join(self.instructions.read_text(encoding="utf-8").split())
+        # These checks verify distributed rules and their route, not agent decisions.
+        for rule in (
+            "When a tranche introduces or changes stable implementation responsibilities",
+            "the main agent must assess the need to create or update `CODEBASE_MAP.md`",
+            "using the codebase-map guide in `maintain-project-authorities`",
+            "create or update it when warranted by the guide",
+            "adapt the project's `AGENTS.md` routing as needed",
+        ):
+            with self.subTest(rule=rule):
+                self.assertIn(rule, instructions)
+        skill = (self.doc / "SKILL.md").read_text(encoding="utf-8")
+        guide = "references/codebase-map/CODEBASE_MAP_GUIDE.md"
+        self.assertIn(f"]({guide})", skill)
+        self.assertEqual((self.doc / guide).read_bytes(), (self.source / "codebase-map/CODEBASE_MAP_GUIDE.md").read_bytes())
+
+    def test_architecture_reviewer_map_checks_reach_both_installed_profiles(self):
+        self.run_install()
+        for root in (self.review, self.codex / "agents"):
+            profile = tomllib.loads((root / "architecture-reviewer.toml").read_text(encoding="utf-8"))
+            self.assertEqual(profile["sandbox_mode"], "read-only")
+            instructions = " ".join(profile["developer_instructions"].split())
+            for rule in (
+                "For significant structural creation or changes",
+                "responsibilities and boundaries need stable documentation routing",
+                "Use the codebase-map guide through maintain-project-authorities",
+                "Check an existing CODEBASE_MAP.md against implemented responsibilities, main paths, major dependencies",
+                "including after modules are created, moved, or removed",
+                "report its absence only if it leaves a material navigability or maintainability gap",
+                "Identify the precise unmet routing need and its concrete impact",
+                "a missing document alone is not a finding",
+                "Leave authority creation or updates to the main agent",
+                "If remediation creates or semantically changes a structured authority, apply the corresponding documentation review under review-and-remediate",
+            ):
+                with self.subTest(root=root, rule=rule):
+                    self.assertIn(rule, instructions)
+
     def test_second_install_does_not_change_files_or_mtimes(self):
         self.run_install()
         before = self.snapshot()

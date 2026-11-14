@@ -33,6 +33,33 @@ contraintes, technologies, responsabilités, frontières, invariants, premières
 étapes et critères de validation, selon le besoin. Aucun questionnaire universel ;
 les incertitudes non bloquantes peuvent rester ouvertes.
 
+## Recommander le cadrage architectural
+
+Pour un nouveau projet, identifier le modèle le plus approprié aux besoins et
+contraintes établis. Présenter une recommandation par défaut avec les raisons
+déterminantes, puis brièvement les alternatives réellement pertinentes et leurs
+principaux compromis. Permettre à l'utilisateur d'accepter ou de modifier cette
+proposition lors de la validation du cadrage ; ne pas lui demander systématiquement
+de choisir un modèle technique abstrait lorsqu'une recommandation est suffisamment étayée.
+
+Pour une application classique sans contrainte particulière de distribution, un
+monolithe modulaire est souvent pertinent si plusieurs responsabilités stables sont
+identifiées. Un petit utilitaire ou un projet peu complexe peut justifier une structure
+plus simple. Cette préférence n'est ni universelle ni une exigence implicite : ROS 2,
+embarqué, ECS, événementiel ou services distribués restent sélectionnables selon les besoins.
+
+Pour un projet existant, identifier d'abord les contraintes, conventions, frontières
+et responsabilités établies dans les autorités et le code. Préserver l'architecture
+existante lorsqu'elle est acceptée et suffisamment identifiable. Toute migration ou
+modification significative du modèle exige une proposition explicite, justifiée et
+validée dans le cadrage ; ne jamais l'introduire silencieusement pendant l'initialisation.
+
+Le cadrage architectural à valider doit préciser les responsabilités, frontières et
+directions de dépendance importantes, au-delà du nom du modèle. Distinguer architecture
+de déploiement, organisation interne du code et organisation des agents IA. Ne pas
+imposer de couches, interfaces, packages, sous-agents ou `AGENTS.md` imbriqués sans
+nécessité démontrée.
+
 ## Déterminer la langue documentaire
 
 Distinguer la langue de communication avec l'utilisateur de la langue des autorités
@@ -117,6 +144,16 @@ contenu établi et accepté. Ajouter une codebase map seulement pour router des
 responsabilités et chemins réellement existants, des ADR seulement pour des choix
 durables justifiés, des contrats ou plans de phase seulement si leur séparation
 apporte une valeur concrète. Supprimer les sections de template sans objet.
+
+Consigner la décision architecturale acceptée dans `ARCHITECTURE.md` et conserver sa
+justification dans un ADR lorsqu'elle mérite une conservation durable, selon le guide ADR.
+Pour le routage, `AGENTS.md` référence principalement les autorités générales et les
+emplacements documentaires ; `ARCHITECTURE.md` référence les ADR pertinents pour ses
+décisions ; `CODEBASE_MAP.md` référence les ADR ou contrats pertinents pour les
+responsabilités qu'il route. Chaque ADR conserve sa décision et sa justification dans
+son propre fichier. Éviter l'énumération systématique des ADR individuels dans `AGENTS.md` ;
+un lien direct reste utile lorsqu'une décision transversale gouverne les travaux concernés.
+Ne pas créer d'index ADR supplémentaire sans besoin concret.
 
 Dans un dépôt vide, distinguer architecture cible acceptée et implémentation absente ;
 ne pas inventer de modules physiques, de chemins ou de codebase map. Dans un dépôt
