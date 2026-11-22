@@ -25,9 +25,9 @@ Le choix doit être fondé sur le **coût cognitif réel du travail demandé par
 la longueur du prompt, le nombre brut de fichiers ou de lignes de code, ou la simple importance
 apparente de la tâche.
 
-Les modèles, niveaux disponibles et coûts évoluent. La calibration ci-dessous reflète la famille
-GPT-6 utilisée dans le workflow en septembre 2026. Vérifier l'offre courante lorsqu'une décision
-dépend matériellement du coût ou de la disponibilité.
+La calibration ci-dessous s'applique à GPT-6.2. Vérifier les modèles et niveaux proposés par
+le client Codex pour le compte et l'espace de travail concernés. Lorsque le coût ou la
+disponibilité influe sur le choix, consulter la [documentation des modèles Codex](https://learn.chatgpt.com/docs/models).
 
 ## Principe central
 
@@ -99,7 +99,7 @@ Le volume de code est un signal secondaire.
 
 ## Sol — modèle principal
 
-Utiliser **GPT-6 Sol** comme modèle d'exécution principal du workflow.
+Utiliser **GPT-6.2 Sol** (`gpt-6.2-sol`) comme modèle d'exécution principal du workflow.
 
 Sol couvre la quasi-totalité des tranches, depuis un travail très borné jusqu'à une exécution
 cognitivement très exigeante, en modulant l'effort de `medium` à `max`.
@@ -120,7 +120,7 @@ Les tâches auparavant réservées à Sol restent principalement couvertes par
 
 ## Astra — escalade de capacité
 
-Utiliser **GPT-6 Astra** de manière exceptionnelle, lorsque la difficulté ne vient plus seulement
+Utiliser **GPT-6.2 Astra** (`gpt-6.2-astra`) de manière exceptionnelle, lorsque la difficulté ne vient plus seulement
 de la profondeur du raisonnement mais de la **capacité nécessaire pour construire correctement la
 solution ou même le cadre du problème**, ou lorsque subsiste un doute matériel sur la capacité de
 **Sol max** à résoudre le problème de façon suffisamment fiable.
@@ -353,7 +353,7 @@ Lorsqu'il rend un prompt d'exécution, ChatGPT affiche immédiatement **avant le
 configuration recommandée pour Codex sous une forme compacte :
 
 ```text
-Model: GPT-6 Sol
+Model: GPT-6.2 Sol
 Reasoning: High
 ```
 

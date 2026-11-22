@@ -78,7 +78,7 @@ class InstallationTests(unittest.TestCase):
             self.assertEqual((self.review / name).read_bytes(), source.read_bytes())
             profile = tomllib.loads(source.read_text(encoding="utf-8"))
             self.assertEqual(profile["name"], f"{role}_reviewer")
-            self.assertEqual(profile["model"], "gpt-6.1-sol")
+            self.assertEqual(profile["model"], "gpt-6.2-sol")
             self.assertEqual(profile["model_reasoning_effort"], "xhigh" if role == "architecture" else "high")
         for root in (self.doc, self.review):
             self.assertEqual((root / "VERSION").read_bytes(), (self.source / "VERSION").read_bytes())
@@ -229,7 +229,7 @@ class InstallationTests(unittest.TestCase):
                 target = root / "tests-reviewer.toml"
                 self.assertEqual(target.read_bytes(), (self.source / "review/review-and-remediate/tests-reviewer.toml").read_bytes())
                 profile = tomllib.loads(target.read_text(encoding="utf-8"))
-                for key, value in {"name": "tests_reviewer", "model": "gpt-6.1-sol",
+                for key, value in {"name": "tests_reviewer", "model": "gpt-6.2-sol",
                                    "model_reasoning_effort": "high", "sandbox_mode": "read-only"}.items():
                     self.assertEqual(profile[key], value)
                 instructions = " ".join(profile["developer_instructions"].split())
@@ -415,7 +415,7 @@ class InstallationTests(unittest.TestCase):
         before = self.snapshot()
         self.assertTrue(self.run_install(check=True))
         self.assertEqual(self.snapshot(), before)
-        self.write(self.source / "VERSION", b"3.0.0\n")
+        self.write(self.source / "VERSION", b"99.0.0\n")
         before = self.snapshot()
         self.assertFalse(self.run_install(check=True))
         self.assertEqual(self.snapshot(), before)
@@ -423,7 +423,7 @@ class InstallationTests(unittest.TestCase):
     def test_local_managed_edit_is_conflict_before_other_updates(self):
         self.run_install()
         self.write(self.codex / "agents/tests-reviewer.toml", b"local edit")
-        self.write(self.source / "VERSION", b"3.0.0\n")
+        self.write(self.source / "VERSION", b"99.0.0\n")
         before = self.snapshot()
         with self.assertRaisesRegex(installer.InstallError, "Locally modified managed file"):
             self.run_install()

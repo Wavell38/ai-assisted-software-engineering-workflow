@@ -26,7 +26,7 @@ spec.loader.exec_module(cli)
 
 FAKE_CODEX = '''import json, os, pathlib, sys
 if "--version" in sys.argv:
-    print(os.environ.get("FAKE_VERSION", "codex-cli 0.146.0"))
+    print(os.environ.get("FAKE_VERSION", "codex-cli 0.166.0"))
 elif "--help" in sys.argv:
     print(os.environ.get("FAKE_HELP", "codex --model --config --cd [PROMPT]"))
 else:
@@ -99,7 +99,7 @@ class InitTests(unittest.TestCase):
                 self.assertEqual(data["codex_home"], str(self.codex))
                 args = data["args"]
                 self.assertNotIn("exec", args)
-                self.assertEqual(args[args.index("--model") + 1], "gpt-6.1-sol")
+                self.assertEqual(args[args.index("--model") + 1], "gpt-6.2-sol")
                 self.assertEqual(Path(args[args.index("--cd") + 1]), self.project)
                 configs = [args[i+1] for i, arg in enumerate(args[:-1]) if arg == "--config"]
                 self.assertIn('model_reasoning_effort="xhigh"', configs)
@@ -266,7 +266,7 @@ class InitTests(unittest.TestCase):
                 stream.close()
         self.addCleanup(cleanup)
         self.assertIn("Workflow IA:", process.stdout.readline())
-        self.assertIn("gpt-6.1-sol / xhigh", process.stdout.readline())
+        self.assertIn("gpt-6.2-sol / xhigh", process.stdout.readline())
         self.assertEqual(process.stdout.readline().strip(), "READY")
         for value in ("first response", "quit"):
             process.stdin.write(value + "\n")
@@ -278,11 +278,25 @@ class InitTests(unittest.TestCase):
 
     def test_explicit_session_configuration(self):
         self.prepare()
-        result = self.invoke("--model", "explicit-model", "--reasoning-effort", "high")
-        self.assertEqual(result.returncode, 0, result.stderr)
-        args = self.capture()["args"]
-        self.assertIn("explicit-model", args)
-        self.assertIn('model_reasoning_effort="high"', args)
+        for model, version in (("gpt-6.2-astra", "0.166.0"), ("explicit-model", "0.146.0")):
+            with self.subTest(model=model, version=version):
+                self.env["FAKE_VERSION"] = f"codex-cli {version}"
+                result = self.invoke("--model", model, "--reasoning-effort", "high")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                args = self.capture()["args"]
+                self.assertEqual(args[args.index("--model") + 1], model)
+                self.assertIn('model_reasoning_effort="high"', args)
+
+    def test_gpt_62_requires_codex_cli_0_166_0(self):
+        self.prepare()
+        for version in ("0.165.0", "0.166.0-alpha.1"):
+            self.env["FAKE_VERSION"] = f"codex-cli {version}"
+            for model_args in ((), ("--model", "gpt-6.2-astra")):
+                with self.subTest(version=version, model_args=model_args):
+                    result = self.invoke(*model_args)
+                    self.assertEqual(result.returncode, 2, result.stderr)
+                    self.assertIn("Codex CLI 0.166.0 or newer is required", result.stderr)
+                    self.assertFalse((self.base / "capture.json").exists())
 
     def test_absent_incompatible_and_failed_codex(self):
         self.prepare()
@@ -296,7 +310,10 @@ class InitTests(unittest.TestCase):
                 self.assertFalse((self.base / "capture.json").exists())
                 del self.env[key]
         self.env["FAKE_EXIT"] = "41"
-        self.assertEqual(self.invoke().returncode, 41)
+        result = self.invoke()
+        self.assertEqual(result.returncode, 41)
+        self.assertEqual(result.stdout.splitlines().count("READY"), 1)
+        self.assertIn("No fallback was attempted", result.stderr)
 
     def test_non_repository_and_inherited_git_routing(self):
         self.prepare()
@@ -352,7 +369,7 @@ class InitTests(unittest.TestCase):
         self.prepare()
         with patch.object(cli, "repository_root", return_value=self.project), \
              patch.object(cli, "codex_command", return_value=["fake"]), \
-             patch.object(cli, "probe", side_effect=["codex-cli 0.146.0", "--model --config --cd [PROMPT]"] * 2), \
+             patch.object(cli, "probe", side_effect=["codex-cli 0.166.0", "--model --config --cd [PROMPT]"] * 2), \
              patch.object(cli, "session_command", return_value=["fake", "prompt"]), \
              patch.object(cli.subprocess, "run", return_value=subprocess.CompletedProcess([], 0)) as run, \
              contextlib.redirect_stdout(io.StringIO()):

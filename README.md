@@ -193,8 +193,8 @@ L'installation assemble les ressources existantes sans déplacer les sources ni 
 fichiers dans les projets consommateurs. Prérequis : **Python 3.11+**, Git pour récupérer
 le dépôt, et une version de Codex prenant en charge les skills utilisateur et les agents
 personnalisés TOML. Aucun package Python tiers, service ou accès réseau n'est utilisé par
-l'installateur. Les modèles des reviewers restent ceux des profils fournis ; leur accès
-via le compte Codex n'est pas vérifié par le script.
+l'installateur. Les cinq profils fournis utilisent GPT-6.2 Sol. Leur exécution dépend
+de [la compatibilité du client et de l'accès au modèle](https://help.openai.com/en/articles/20001275-chatgpt-work-and-codex).
 
 Les emplacements suivent la documentation officielle de [découverte des skills](https://learn.chatgpt.com/docs/build-skills),
 des [agents personnalisés](https://learn.chatgpt.com/docs/agent-configuration/subagents) et des
@@ -300,19 +300,21 @@ Depuis un dépôt Git neuf (`git init`) ou existant, y compris un sous-répertoi
 workflow-ia init
 ```
 
-Prérequis d'exécution : Python 3.11+, Git et **Codex CLI 0.146.0+**, installé et
-authentifié séparément, avec accès au modèle demandé. Le CLI vérifie le worktree,
-la version et les options interactives annoncées par Codex, puis le lance à la
-racine Git dans le terminal courant, avec ses entrées/sorties continues. Les
-worktrees liés sont acceptés ; un dépôt bare ou une redirection par `GIT_DIR`,
-`GIT_WORK_TREE` ou `GIT_COMMON_DIR` est refusé.
+Le lanceur requiert Python 3.11+, Git et un Codex CLI installé et authentifié
+séparément. Il applique le minimum **Codex CLI 0.166.0** pour `gpt-6.2-sol` et
+`gpt-6.2-astra`, conformément au [prérequis officiel](https://help.openai.com/en/articles/20001275-chatgpt-work-and-codex).
+Pour les autres modèles choisis explicitement, le seuil du lanceur reste **0.146.0**.
+Le CLI vérifie le worktree, la version et les options interactives annoncées par
+Codex, puis le lance à la racine Git dans le terminal courant, avec ses
+entrées/sorties continues. Les worktrees liés sont acceptés. Un dépôt bare ou une
+redirection par `GIT_DIR`, `GIT_WORK_TREE` ou `GIT_COMMON_DIR` est refusé.
 
-Le modèle `gpt-6.1-sol` et l'effort `xhigh` sont passés explicitement pour cette
-session. `--model <identifiant>` et `--reasoning-effort <niveau>` permettent un choix
-explicite ; aucun repli de modèle ou d'effort n'est tenté. L'accès effectif et les
-capacités du modèle sont contrôlés par Codex lors de la session, pas par le test
-d'aide local. Les erreurs et codes de sortie sont propagés ; un arrêt de Codex
-ne vaut pas confirmation de réussite documentaire.
+Le lanceur transmet par défaut `gpt-6.2-sol` et l'effort `xhigh` à Codex.
+`--model <identifiant>` et `--reasoning-effort <niveau>` permettent un choix
+explicite. Le lanceur propage les erreurs et les codes de sortie sans tenter de
+repli de modèle ou d'effort. Codex vérifie l'accès au modèle et ses capacités
+lors de la session. Un arrêt de Codex ne vaut pas confirmation de réussite
+documentaire.
 
 Le lanceur utilise le Python ayant effectué l'installation et des ressources sous
 le `CODEX_HOME` choisi à l'installation ; il reste autonome si le clone source est

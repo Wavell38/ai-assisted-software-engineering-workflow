@@ -13,6 +13,9 @@ import subprocess
 import sys
 
 
+GPT_62_SOL = "gpt-6.2-sol"
+
+
 class InitError(Exception):
     """A prerequisite failed before starting the interactive session."""
 
@@ -88,7 +91,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="action", required=True)
     init = sub.add_parser("init", help="analyze and frame a Git project interactively with Codex")
-    init.add_argument("--model", default="gpt-6.1-sol", help="explicit session model (no fallback)")
+    init.add_argument("--model", default=GPT_62_SOL, help="explicit session model (no fallback)")
     init.add_argument("--reasoning-effort", default="xhigh", choices=("low", "medium", "high", "xhigh", "max", "ultra"))
     init.add_argument("--codex", help="explicit Codex executable or Python wrapper")
     args = parser.parse_args(argv)
@@ -100,9 +103,14 @@ def main(argv: list[str] | None = None) -> int:
         root = repository_root(Path.cwd())
         command = codex_command(args.codex)
         version = probe([*command, "--version"], root)
-        match = re.search(r"codex-cli (\d+)\.(\d+)\.(\d+)", version)
-        if not match or tuple(map(int, match.groups())) < (0, 146, 0):
-            raise InitError("Codex CLI 0.146.0 or newer is required; no model or effort fallback is used.")
+        match = re.search(r"codex-cli (\d+\.\d+\.\d+)(-[\w.-]+)?", version)
+        installed = tuple(map(int, match[1].split("."))) if match else ()
+        uses_gpt_62 = args.model in (GPT_62_SOL, "gpt-6.2-astra")
+        minimum = (0, 166, 0) if uses_gpt_62 else (0, 146, 0)
+        if not match or installed < minimum or (uses_gpt_62 and installed == minimum and match[2]):
+            required_version = ".".join(map(str, minimum))
+            raise InitError(f"Codex CLI {required_version} or newer is required for {args.model}; "
+                            "no model or effort fallback is used.")
         help_text = probe([*command, "--help"], root)
         if any(option not in help_text for option in ("--model", "--config", "--cd", "[PROMPT]")):
             raise InitError("Codex CLI does not advertise the required interactive options.")
